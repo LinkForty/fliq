@@ -37,6 +37,7 @@ export default function RootLayout() {
         <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
         <Stack.Screen name="create" options={{ title: 'Create Secret', presentation: 'modal' }} />
         <Stack.Screen name="reveal/[id]" options={{ title: 'Reveal', headerShown: false }} />
+        <Stack.Screen name="s" options={{ headerShown: false }} />
         <Stack.Screen name="settings" options={{ title: 'Settings' }} />
       </Stack>
     </ThemeProvider>

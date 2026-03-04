@@ -1,15 +1,14 @@
 import { useEffect, useState, useCallback } from 'react';
 import { View, Text, Pressable } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { getMessages, saveMessage, markAsRead } from '@/lib/storage';
-import { parseDeepLink } from '@/lib/deeplink';
+import { getMessages, markAsRead } from '@/lib/storage';
 import { REVEAL_STYLES } from '@/lib/reveal-styles';
 import { ScratchReveal } from '@/components/ScratchReveal';
 import { BlurReveal } from '@/components/BlurReveal';
 import type { Message, RevealStyle } from '@/lib/types';
 
 export default function RevealScreen() {
-  const { id, url } = useLocalSearchParams<{ id: string; url?: string }>();
+  const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
   const [message, setMessage] = useState<Message | null>(null);
   const [revealed, setRevealed] = useState(false);
@@ -17,29 +16,9 @@ export default function RevealScreen() {
 
   useEffect(() => {
     loadMessage();
-  }, [id, url]);
+  }, [id]);
 
   async function loadMessage() {
-    // Try loading from deep link URL first
-    if (url) {
-      const payload = parseDeepLink(decodeURIComponent(url));
-      if (payload) {
-        const msg: Message = {
-          id: id || Date.now().toString(36),
-          content: payload.content,
-          revealStyle: payload.revealStyle,
-          senderName: payload.senderName,
-          createdAt: new Date().toISOString(),
-          isRead: false,
-          direction: 'received',
-        };
-        setMessage(msg);
-        await saveMessage(msg);
-        return;
-      }
-    }
-
-    // Try loading from local storage by ID
     if (id) {
       const messages = await getMessages();
       const found = messages.find((m) => m.id === id);
