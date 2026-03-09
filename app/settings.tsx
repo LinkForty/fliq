@@ -13,7 +13,7 @@ import { useRouter } from 'expo-router';
 import { getSettings, saveSettings, clearSettings } from '@/lib/settings';
 import { initializeSDK, isConnected, resetSDK } from '@/lib/sdk';
 
-const DEFAULT_BASE_URL = 'https://app.linkforty.com';
+const DEFAULT_BASE_URL = 'https://cloud-production-66bb.up.railway.app';
 
 export default function SettingsScreen() {
   const router = useRouter();
@@ -117,7 +117,7 @@ export default function SettingsScreen() {
         <TextInput
           value={baseUrl}
           onChangeText={setBaseUrl}
-          placeholder="https://app.linkforty.com"
+          placeholder="https://cloud-production-66bb.up.railway.app"
           placeholderTextColor="#9ca3af"
           autoCapitalize="none"
           autoCorrect={false}

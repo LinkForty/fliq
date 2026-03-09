@@ -1,7 +1,7 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const SETTINGS_KEY = '@fliq/settings';
-const DEFAULT_BASE_URL = 'https://app.linkforty.com';
+const DEFAULT_BASE_URL = 'https://cloud-production-66bb.up.railway.app';
 
 export type FliqSettings = {
   apiKey?: string;
