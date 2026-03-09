@@ -45,7 +45,7 @@ Connect Fliq to your LinkForty Cloud dashboard to see real analytics data:
 
 ### Setup
 
-1. Sign up at [app.linkforty.com](https://app.linkforty.com) (Pro plan or higher required for API access)
+1. Sign up at [app.linkforty.com](https://app.linkforty.com) (all plans include API access)
 2. Go to **Settings → API Keys** and create a new key
 3. In Fliq, tap the gear icon → paste your API key → tap **Connect**
 
