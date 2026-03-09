@@ -12,7 +12,8 @@ import {
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { saveMessage } from '@/lib/storage';
-import { generateShareUrl, isPayloadTooLarge } from '@/lib/deeplink';
+import { isPayloadTooLarge } from '@/lib/deeplink';
+import { createShareLink, isConnected } from '@/lib/sdk';
 import { REVEAL_STYLES } from '@/lib/reveal-styles';
 import type { RevealStyle, Message } from '@/lib/types';
 
@@ -40,7 +41,8 @@ export default function CreateScreen() {
       senderName: senderName.trim(),
     };
 
-    if (isPayloadTooLarge(payload)) {
+    // Only check payload size in standalone mode (connected mode uses server-side links)
+    if (!isConnected() && isPayloadTooLarge(payload)) {
       Alert.alert(
         'Message too long',
         'Your message is too long to fit in a shareable link. Please shorten it.',
@@ -51,7 +53,7 @@ export default function CreateScreen() {
     setSharing(true);
 
     try {
-      const url = generateShareUrl(payload);
+      const url = await createShareLink(payload);
 
       const message: Message = {
         id: Date.now().toString(36) + Math.random().toString(36).slice(2, 8),

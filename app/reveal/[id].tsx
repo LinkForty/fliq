@@ -2,6 +2,7 @@ import { useEffect, useState, useCallback } from 'react';
 import { View, Text, Pressable } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { getMessages, markAsRead } from '@/lib/storage';
+import { trackEvent } from '@/lib/sdk';
 import { REVEAL_STYLES } from '@/lib/reveal-styles';
 import { ScratchReveal } from '@/components/ScratchReveal';
 import { BlurReveal } from '@/components/BlurReveal';
@@ -35,6 +36,10 @@ export default function RevealScreen() {
     setRevealed(true);
     if (message) {
       await markAsRead(message.id);
+      trackEvent('message_revealed', {
+        revealStyle: message.revealStyle,
+        senderName: message.senderName,
+      });
     }
   }, [message]);
 
