@@ -1,7 +1,13 @@
 {
   "name": "fliq",
+  "description": "A secret message app demonstrating deep linking with React Native and Expo Router",
   "main": "expo-router/entry",
   "version": "1.0.0",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/linkforty/fliq.git"
+  },
   "scripts": {
     "start": "expo start",
     "android": "expo start --android",
@@ -9,7 +15,7 @@
     "web": "expo start --web"
   },
   "dependencies": {
-    "@react-native-async-storage/async-storage": "^3.0.1",
+    "@react-native-async-storage/async-storage": "2.2.0",
     "@react-navigation/native": "^7.1.28",
     "expo": "~55.0.4",
     "expo-blur": "^55.0.8",
@@ -36,6 +42,5 @@
   "devDependencies": {
     "@types/react": "~19.2.2",
     "typescript": "~5.9.2"
-  },
-  "private": true
+  }
 }
