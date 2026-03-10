@@ -23,6 +23,12 @@ export async function markAsRead(id: string): Promise<void> {
   await AsyncStorage.setItem(MESSAGES_KEY, JSON.stringify(updated));
 }
 
+export async function deleteMessage(id: string): Promise<void> {
+  const messages = await getMessages();
+  const filtered = messages.filter((m) => m.id !== id);
+  await AsyncStorage.setItem(MESSAGES_KEY, JSON.stringify(filtered));
+}
+
 export async function clearMessages(): Promise<void> {
   await AsyncStorage.removeItem(MESSAGES_KEY);
 }

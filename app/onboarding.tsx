@@ -1,0 +1,153 @@
+import { useState, useRef } from 'react';
+import {
+  View,
+  Text,
+  TextInput,
+  Pressable,
+  KeyboardAvoidingView,
+  Platform,
+  Alert,
+} from 'react-native';
+import { useRouter } from 'expo-router';
+import Animated, {
+  FadeIn,
+  FadeOut,
+  SlideInRight,
+  SlideOutLeft,
+} from 'react-native-reanimated';
+import { getSettings, saveSettings } from '@/lib/settings';
+
+const TOTAL_STEPS = 4;
+
+const STEPS = [
+  {
+    emoji: '🤫',
+    title: 'Welcome to Fliq',
+    body: 'Send secret messages that only the recipient can reveal.',
+  },
+  {
+    emoji: '🫰',
+    title: 'Flick to Reveal',
+    body: 'Give your phone a quick flick to reveal messages — that\'s the Fliq way!\n\nYou can also scratch or tap to reveal. Choose a style each time you send.',
+  },
+  {
+    emoji: '🔒',
+    title: 'Your Privacy, Your Data',
+    body: 'Messages are stored only on your phone — never in a database.\n\nDelete them anytime. By default, messages vanish after you read them.',
+  },
+  {
+    emoji: '👋',
+    title: 'What should we call you?',
+    body: 'This will be your default name when sending secrets. You can always change it later.',
+  },
+];
+
+export default function OnboardingScreen() {
+  const router = useRouter();
+  const [step, setStep] = useState(0);
+  const [name, setName] = useState('');
+  const nameInputRef = useRef<TextInput>(null);
+
+  const isLastStep = step === TOTAL_STEPS - 1;
+  const current = STEPS[step];
+
+  async function handleNext() {
+    if (isLastStep) {
+      if (!name.trim()) {
+        Alert.alert('Enter your name', 'We need a name to get started!');
+        return;
+      }
+      const settings = await getSettings();
+      await saveSettings({
+        ...settings,
+        userName: name.trim(),
+        onboardingComplete: true,
+      });
+      router.replace('/');
+    } else {
+      setStep((s) => s + 1);
+    }
+  }
+
+  return (
+    <KeyboardAvoidingView
+      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      className="flex-1 bg-white dark:bg-gray-900"
+    >
+      <View className="flex-1 justify-between px-8 pt-24 pb-12">
+        {/* Content */}
+        <Animated.View
+          key={step}
+          entering={SlideInRight.duration(300)}
+          exiting={SlideOutLeft.duration(200)}
+          className="flex-1 justify-center items-center"
+        >
+          <View className="w-24 h-24 items-center justify-center mb-6" style={{ overflow: 'visible' }}>
+            <Text style={{ fontSize: 72, lineHeight: 90 }}>{current.emoji}</Text>
+          </View>
+          <Text className="text-3xl font-bold text-gray-900 dark:text-white text-center mb-4">
+            {current.title}
+          </Text>
+          <Text className="text-base text-gray-500 dark:text-gray-400 text-center leading-relaxed px-4">
+            {current.body}
+          </Text>
+
+          {/* Name input on last step */}
+          {isLastStep && (
+            <TextInput
+              ref={nameInputRef}
+              value={name}
+              onChangeText={setName}
+              placeholder="Your name"
+              placeholderTextColor="#9ca3af"
+              autoFocus
+              autoCapitalize="words"
+              returnKeyType="done"
+              onSubmitEditing={handleNext}
+              className="mt-8 w-full bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl px-4 py-3.5 text-gray-900 dark:text-white text-lg text-center"
+            />
+          )}
+        </Animated.View>
+
+        {/* Bottom navigation */}
+        <View className="items-center">
+          {/* Dots */}
+          <View className="flex-row mb-8">
+            {Array.from({ length: TOTAL_STEPS }, (_, i) => (
+              <View
+                key={i}
+                className={`w-2.5 h-2.5 rounded-full mx-1.5 ${
+                  i === step
+                    ? 'bg-indigo-500'
+                    : 'bg-gray-300 dark:bg-gray-600'
+                }`}
+              />
+            ))}
+          </View>
+
+          {/* Button */}
+          <Pressable
+            onPress={handleNext}
+            className="w-full rounded-xl py-4 items-center bg-indigo-500 active:bg-indigo-600"
+          >
+            <Text className="text-white font-semibold text-base">
+              {isLastStep ? 'Get Started' : 'Next'}
+            </Text>
+          </Pressable>
+
+          {/* Skip on non-last steps */}
+          {!isLastStep && (
+            <Pressable
+              onPress={() => setStep(TOTAL_STEPS - 1)}
+              className="mt-4 py-2"
+            >
+              <Text className="text-gray-400 dark:text-gray-500 text-sm">
+                Skip
+              </Text>
+            </Pressable>
+          )}
+        </View>
+      </View>
+    </KeyboardAvoidingView>
+  );
+}

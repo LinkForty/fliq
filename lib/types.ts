@@ -1,4 +1,4 @@
-export type RevealStyle = 'scratch' | 'blur' | 'typewriter' | 'flip';
+export type RevealStyle = 'scratch' | 'blur' | 'flick' | 'typewriter' | 'flip';
 
 export type Message = {
   id: string;

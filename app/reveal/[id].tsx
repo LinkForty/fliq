@@ -1,11 +1,13 @@
 import { useEffect, useState, useCallback } from 'react';
 import { View, Text, Pressable } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { getMessages, markAsRead } from '@/lib/storage';
+import { getMessages, markAsRead, deleteMessage } from '@/lib/storage';
+import { getSettings } from '@/lib/settings';
 import { trackEvent } from '@/lib/sdk';
 import { REVEAL_STYLES } from '@/lib/reveal-styles';
 import { ScratchReveal } from '@/components/ScratchReveal';
 import { BlurReveal } from '@/components/BlurReveal';
+import { FlickReveal } from '@/components/FlickReveal';
 import type { Message, RevealStyle } from '@/lib/types';
 
 export default function RevealScreen() {
@@ -35,11 +37,16 @@ export default function RevealScreen() {
   const handleRevealed = useCallback(async () => {
     setRevealed(true);
     if (message) {
-      await markAsRead(message.id);
       trackEvent('message_revealed', {
         revealStyle: message.revealStyle,
         senderName: message.senderName,
       });
+      const settings = await getSettings();
+      if (settings.autoDeleteAfterRead) {
+        await deleteMessage(message.id);
+      } else {
+        await markAsRead(message.id);
+      }
     }
   }, [message]);
 
@@ -93,6 +100,11 @@ export default function RevealScreen() {
       <View className="flex-1 px-5 pb-5">
         {revealStyle === 'scratch' ? (
           <ScratchReveal
+            content={message.content}
+            onRevealed={handleRevealed}
+          />
+        ) : revealStyle === 'flick' ? (
+          <FlickReveal
             content={message.content}
             onRevealed={handleRevealed}
           />

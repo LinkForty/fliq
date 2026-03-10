@@ -1,7 +1,8 @@
 import { useCallback, useState } from 'react';
-import { View, Text, FlatList, Pressable } from 'react-native';
+import { View, Text, FlatList, Pressable, Alert } from 'react-native';
 import { useRouter, useFocusEffect } from 'expo-router';
-import { getMessages } from '@/lib/storage';
+import Swipeable from 'react-native-gesture-handler/ReanimatedSwipeable';
+import { getMessages, deleteMessage } from '@/lib/storage';
 import { timeAgo } from '@/lib/time';
 import { REVEAL_STYLES } from '@/lib/reveal-styles';
 import type { Message } from '@/lib/types';
@@ -16,11 +17,27 @@ export default function HomeScreen() {
     }, []),
   );
 
+  const handleDelete = useCallback((id: string, name: string) => {
+    Alert.alert('Delete Message', `Delete secret from ${name}?`, [
+      { text: 'Cancel', style: 'cancel' },
+      {
+        text: 'Delete',
+        style: 'destructive',
+        onPress: async () => {
+          await deleteMessage(id);
+          setMessages((prev) => prev.filter((m) => m.id !== id));
+        },
+      },
+    ]);
+  }, []);
+
   return (
     <View className="flex-1 bg-white dark:bg-gray-900">
       {messages.length === 0 ? (
         <View className="flex-1 items-center justify-center px-8">
-          <Text className="text-5xl mb-4">🤫</Text>
+          <View className="w-16 h-16 items-center justify-center mb-4" style={{ overflow: 'visible' }}>
+            <Text style={{ fontSize: 48, lineHeight: 58 }}>🤫</Text>
+          </View>
           <Text className="text-xl font-bold text-gray-900 dark:text-white text-center">
             No secrets yet
           </Text>
@@ -32,11 +49,17 @@ export default function HomeScreen() {
         <FlatList
           data={messages}
           keyExtractor={(item) => item.id}
-          contentContainerClassName="p-4"
+          contentContainerClassName="px-4 pt-2 pb-4"
           renderItem={({ item }) => (
-            <MessageCard
+            <SwipeableMessageCard
               message={item}
               onPress={() => router.push(`/reveal/${item.id}`)}
+              onDelete={() =>
+                handleDelete(
+                  item.id,
+                  item.direction === 'sent' ? 'You' : item.senderName,
+                )
+              }
             />
           )}
           ItemSeparatorComponent={() => <View className="h-3" />}
@@ -54,6 +77,33 @@ export default function HomeScreen() {
   );
 }
 
+function SwipeableMessageCard({
+  message,
+  onPress,
+  onDelete,
+}: {
+  message: Message;
+  onPress: () => void;
+  onDelete: () => void;
+}) {
+  return (
+    <Swipeable
+      friction={2}
+      rightThreshold={40}
+      renderRightActions={() => (
+        <Pressable
+          onPress={onDelete}
+          className="bg-red-500 rounded-2xl justify-center items-center px-5 ml-3"
+        >
+          <Text className="text-white text-xs font-semibold">Delete</Text>
+        </Pressable>
+      )}
+    >
+      <MessageCard message={message} onPress={onPress} />
+    </Swipeable>
+  );
+}
+
 function MessageCard({
   message,
   onPress,
@@ -68,11 +118,13 @@ function MessageCard({
   return (
     <Pressable
       onPress={onPress}
-      className="bg-gray-50 dark:bg-gray-800 rounded-2xl p-4 active:opacity-80"
+      className="bg-gray-50 dark:bg-gray-800 rounded-2xl p-4 active:opacity-80 overflow-visible"
     >
       <View className="flex-row items-center justify-between">
         <View className="flex-row items-center flex-1">
-          <Text className="text-2xl mr-3">{style.emoji}</Text>
+          <View className="w-9 h-9 items-center justify-center mr-3" style={{ overflow: 'visible' }}>
+            <Text style={{ fontSize: 24, lineHeight: 32 }}>{style.emoji}</Text>
+          </View>
           <View className="flex-1">
             <View className="flex-row items-center">
               <Text

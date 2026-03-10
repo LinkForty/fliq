@@ -53,9 +53,9 @@ export async function createShareLink(payload: MessagePayload): Promise<string> 
       title: `Secret from ${payload.senderName}`,
     });
     return result.url;
-  } catch {
-    // Fall back to standalone if API call fails
-    return generateShareUrl(payload);
+  } catch (error) {
+    console.warn('[Fliq] createLink failed, falling back to standalone URL:', error);
+    throw error; // Surface the error instead of silently falling back
   }
 }
 

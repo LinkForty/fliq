@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -12,20 +12,27 @@ import {
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { saveMessage } from '@/lib/storage';
+import { getSettings } from '@/lib/settings';
 import { isPayloadTooLarge } from '@/lib/deeplink';
 import { createShareLink, isConnected } from '@/lib/sdk';
 import { REVEAL_STYLES } from '@/lib/reveal-styles';
 import type { RevealStyle, Message } from '@/lib/types';
 
 const MAX_CONTENT_LENGTH = 500;
-const AVAILABLE_STYLES: RevealStyle[] = ['scratch', 'blur'];
+const AVAILABLE_STYLES: RevealStyle[] = ['flick', 'scratch', 'blur'];
 
 export default function CreateScreen() {
   const router = useRouter();
   const [content, setContent] = useState('');
   const [senderName, setSenderName] = useState('');
-  const [revealStyle, setRevealStyle] = useState<RevealStyle>('scratch');
+  const [revealStyle, setRevealStyle] = useState<RevealStyle>('flick');
   const [sharing, setSharing] = useState(false);
+
+  useEffect(() => {
+    getSettings().then((settings) => {
+      if (settings.userName) setSenderName(settings.userName);
+    });
+  }, []);
 
   const canShare =
     content.trim().length > 0 &&
@@ -55,17 +62,20 @@ export default function CreateScreen() {
     try {
       const url = await createShareLink(payload);
 
-      const message: Message = {
-        id: Date.now().toString(36) + Math.random().toString(36).slice(2, 8),
-        content: payload.content,
-        revealStyle: payload.revealStyle,
-        senderName: payload.senderName,
-        createdAt: new Date().toISOString(),
-        isRead: true,
-        direction: 'sent',
-      };
+      const settings = await getSettings();
+      if (!settings.autoDeleteAfterSend) {
+        const message: Message = {
+          id: Date.now().toString(36) + Math.random().toString(36).slice(2, 8),
+          content: payload.content,
+          revealStyle: payload.revealStyle,
+          senderName: payload.senderName,
+          createdAt: new Date().toISOString(),
+          isRead: true,
+          direction: 'sent',
+        };
 
-      await saveMessage(message);
+        await saveMessage(message);
+      }
 
       await Share.share(
         {

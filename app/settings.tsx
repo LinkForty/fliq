@@ -5,6 +5,7 @@ import {
   TextInput,
   Pressable,
   ScrollView,
+  Switch,
   Alert,
   KeyboardAvoidingView,
   Platform,
@@ -12,8 +13,9 @@ import {
 import { useRouter } from 'expo-router';
 import { getSettings, saveSettings, clearSettings } from '@/lib/settings';
 import { initializeSDK, isConnected, resetSDK } from '@/lib/sdk';
+import { clearMessages } from '@/lib/storage';
 
-const DEFAULT_BASE_URL = 'https://cloud-production-66bb.up.railway.app';
+const DEFAULT_BASE_URL = 'https://api.linkforty.com';
 
 export default function SettingsScreen() {
   const router = useRouter();
@@ -21,6 +23,8 @@ export default function SettingsScreen() {
   const [baseUrl, setBaseUrl] = useState(DEFAULT_BASE_URL);
   const [connected, setConnected] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [autoDelete, setAutoDelete] = useState(true);
+  const [autoDeleteSend, setAutoDeleteSend] = useState(true);
 
   useEffect(() => {
     loadSettings();
@@ -30,6 +34,8 @@ export default function SettingsScreen() {
     const settings = await getSettings();
     if (settings.apiKey) setApiKey(settings.apiKey);
     setBaseUrl(settings.baseUrl);
+    setAutoDelete(settings.autoDeleteAfterRead);
+    setAutoDeleteSend(settings.autoDeleteAfterSend);
     setConnected(isConnected());
   }
 
@@ -41,7 +47,8 @@ export default function SettingsScreen() {
 
     setLoading(true);
     try {
-      await saveSettings({ apiKey: apiKey.trim(), baseUrl: baseUrl.trim() });
+      const existing = await getSettings();
+      await saveSettings({ ...existing, apiKey: apiKey.trim(), baseUrl: baseUrl.trim(), autoDeleteAfterRead: autoDelete, autoDeleteAfterSend: autoDeleteSend });
       const success = await initializeSDK();
       setConnected(success);
       if (success) {
@@ -58,7 +65,8 @@ export default function SettingsScreen() {
 
   async function handleDisconnect() {
     resetSDK();
-    await clearSettings();
+    const settings = await getSettings();
+    await saveSettings({ ...settings, apiKey: undefined, baseUrl: DEFAULT_BASE_URL });
     setApiKey('');
     setBaseUrl(DEFAULT_BASE_URL);
     setConnected(false);
@@ -117,7 +125,7 @@ export default function SettingsScreen() {
         <TextInput
           value={baseUrl}
           onChangeText={setBaseUrl}
-          placeholder="https://cloud-production-66bb.up.railway.app"
+          placeholder="https://api.linkforty.com"
           placeholderTextColor="#9ca3af"
           autoCapitalize="none"
           autoCorrect={false}
@@ -153,6 +161,117 @@ export default function SettingsScreen() {
             </Text>
           </Pressable>
         )}
+
+        {/* Preferences */}
+        <View className="mt-10 pt-6 border-t border-gray-200 dark:border-gray-700">
+          <Text className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">
+            Preferences
+          </Text>
+          <View className="flex-row items-center justify-between p-4 rounded-xl bg-gray-50 dark:bg-gray-800">
+            <View className="flex-1 mr-4">
+              <Text className="font-semibold text-gray-900 dark:text-white">
+                Auto-delete after reading
+              </Text>
+              <Text className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
+                Messages are removed from your device after being revealed
+              </Text>
+            </View>
+            <Switch
+              value={autoDelete}
+              onValueChange={async (value) => {
+                setAutoDelete(value);
+                const settings = await getSettings();
+                await saveSettings({ ...settings, autoDeleteAfterRead: value });
+              }}
+              trackColor={{ false: '#d1d5db', true: '#818cf8' }}
+              thumbColor={autoDelete ? '#6366f1' : '#f3f4f6'}
+            />
+          </View>
+          <View className="flex-row items-center justify-between p-4 rounded-xl bg-gray-50 dark:bg-gray-800 mt-3">
+            <View className="flex-1 mr-4">
+              <Text className="font-semibold text-gray-900 dark:text-white">
+                Auto-delete after sending
+              </Text>
+              <Text className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
+                Sent messages are not saved to your device
+              </Text>
+            </View>
+            <Switch
+              value={autoDeleteSend}
+              onValueChange={async (value) => {
+                setAutoDeleteSend(value);
+                const settings = await getSettings();
+                await saveSettings({ ...settings, autoDeleteAfterSend: value });
+              }}
+              trackColor={{ false: '#d1d5db', true: '#818cf8' }}
+              thumbColor={autoDeleteSend ? '#6366f1' : '#f3f4f6'}
+            />
+          </View>
+        </View>
+
+        {/* Data */}
+        <View className="mt-10 pt-6 border-t border-gray-200 dark:border-gray-700">
+          <Text className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">
+            Data
+          </Text>
+          <Pressable
+            onPress={() =>
+              Alert.alert(
+                'Clear All Messages',
+                'This will permanently delete all sent and received messages from this device.',
+                [
+                  { text: 'Cancel', style: 'cancel' },
+                  {
+                    text: 'Clear All',
+                    style: 'destructive',
+                    onPress: async () => {
+                      await clearMessages();
+                      Alert.alert('Done', 'All messages have been cleared.');
+                    },
+                  },
+                ],
+              )
+            }
+            className="rounded-xl py-4 items-center border-2 border-red-500 active:bg-red-50 dark:active:bg-red-950"
+          >
+            <Text className="text-red-500 font-semibold text-base">
+              Clear All Messages
+            </Text>
+          </Pressable>
+          <Text className="text-xs text-gray-400 dark:text-gray-500 mt-2 text-center">
+            Permanently deletes all messages from this device
+          </Text>
+
+          <Pressable
+            onPress={() =>
+              Alert.alert(
+                'Reset App Data',
+                'This will erase all messages, settings, and app data. You will need to go through onboarding again.',
+                [
+                  { text: 'Cancel', style: 'cancel' },
+                  {
+                    text: 'Reset Everything',
+                    style: 'destructive',
+                    onPress: async () => {
+                      resetSDK();
+                      await clearMessages();
+                      await clearSettings();
+                      router.replace('/onboarding');
+                    },
+                  },
+                ],
+              )
+            }
+            className="mt-4 rounded-xl py-4 items-center bg-red-500 active:bg-red-600"
+          >
+            <Text className="text-white font-semibold text-base">
+              Reset App Data
+            </Text>
+          </Pressable>
+          <Text className="text-xs text-gray-400 dark:text-gray-500 mt-2 text-center">
+            Erases everything and returns to onboarding
+          </Text>
+        </View>
       </ScrollView>
     </KeyboardAvoidingView>
   );

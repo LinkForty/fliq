@@ -17,6 +17,11 @@ export const REVEAL_STYLES: Record<RevealStyle, StyleMeta> = {
     emoji: '👁️',
     description: 'Tap and hold to reveal',
   },
+  flick: {
+    label: 'Flick',
+    emoji: '🫰',
+    description: 'Flick your phone to reveal',
+  },
   typewriter: {
     label: 'Typewriter',
     emoji: '⌨️',
