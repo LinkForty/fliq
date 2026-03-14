@@ -19,7 +19,7 @@ import { REVEAL_STYLES } from '@/lib/reveal-styles';
 import type { RevealStyle, Message } from '@/lib/types';
 
 const MAX_CONTENT_LENGTH = 500;
-const AVAILABLE_STYLES: RevealStyle[] = ['flick', 'scratch', 'blur'];
+const AVAILABLE_STYLES: RevealStyle[] = ['flick'];
 
 export default function CreateScreen() {
   const router = useRouter();

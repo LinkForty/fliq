@@ -8,6 +8,8 @@ import { REVEAL_STYLES } from '@/lib/reveal-styles';
 import { ScratchReveal } from '@/components/ScratchReveal';
 import { BlurReveal } from '@/components/BlurReveal';
 import { FlickReveal } from '@/components/FlickReveal';
+import { TypewriterReveal } from '@/components/TypewriterReveal';
+import { FlipReveal } from '@/components/FlipReveal';
 import type { Message, RevealStyle } from '@/lib/types';
 
 export default function RevealScreen() {
@@ -105,6 +107,16 @@ export default function RevealScreen() {
           />
         ) : revealStyle === 'flick' ? (
           <FlickReveal
+            content={message.content}
+            onRevealed={handleRevealed}
+          />
+        ) : revealStyle === 'typewriter' ? (
+          <TypewriterReveal
+            content={message.content}
+            onRevealed={handleRevealed}
+          />
+        ) : revealStyle === 'flip' ? (
+          <FlipReveal
             content={message.content}
             onRevealed={handleRevealed}
           />

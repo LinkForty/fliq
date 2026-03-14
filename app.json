@@ -2,6 +2,7 @@
   "expo": {
     "name": "Fliq",
     "slug": "fliq",
+    "owner": "linkforty",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
@@ -15,7 +16,9 @@
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.linkforty.fliq",
-      "associatedDomains": ["applinks:fliq.linkforty.com"]
+      "associatedDomains": [
+        "applinks:fliq.linkforty.com"
+      ]
     },
     "android": {
       "package": "com.linkforty.fliq",
@@ -36,7 +39,10 @@
               "pathPrefix": "/s"
             }
           ],
-          "category": ["BROWSABLE", "DEFAULT"]
+          "category": [
+            "BROWSABLE",
+            "DEFAULT"
+          ]
         }
       ]
     },
@@ -50,6 +56,12 @@
     ],
     "experiments": {
       "typedRoutes": true
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "8ea1ee77-7bab-4138-ad5a-f6e59f73487c"
+      }
     }
   }
 }
