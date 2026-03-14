@@ -11,6 +11,7 @@ import {
   Platform,
 } from 'react-native';
 import { useRouter } from 'expo-router';
+import * as WebBrowser from 'expo-web-browser';
 import { getSettings, saveSettings, clearSettings } from '@/lib/settings';
 import { initializeSDK, isConnected, resetSDK } from '@/lib/sdk';
 import { clearMessages } from '@/lib/storage';
@@ -207,6 +208,27 @@ export default function SettingsScreen() {
               thumbColor={autoDeleteSend ? '#6366f1' : '#f3f4f6'}
             />
           </View>
+        </View>
+
+        {/* Legal */}
+        <View className="mt-10 pt-6 border-t border-gray-200 dark:border-gray-700">
+          <Text className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">
+            Legal
+          </Text>
+          <Pressable
+            onPress={() => WebBrowser.openBrowserAsync('https://linkforty.com/fliq/privacy')}
+            className="flex-row items-center justify-between p-4 rounded-xl bg-gray-50 dark:bg-gray-800"
+          >
+            <Text className="font-semibold text-gray-900 dark:text-white">Privacy Policy</Text>
+            <Text className="text-gray-400">›</Text>
+          </Pressable>
+          <Pressable
+            onPress={() => WebBrowser.openBrowserAsync('https://linkforty.com/fliq/terms')}
+            className="flex-row items-center justify-between p-4 rounded-xl bg-gray-50 dark:bg-gray-800 mt-3"
+          >
+            <Text className="font-semibold text-gray-900 dark:text-white">Terms of Service</Text>
+            <Text className="text-gray-400">›</Text>
+          </Pressable>
         </View>
 
         {/* Data */}
