@@ -87,8 +87,8 @@ export default function SettingsScreen() {
     const settings = await getSettings();
     await saveSettings({ ...settings, phoneNumber: phoneNumber.trim() });
 
-    const token = await registerForPushNotifications();
-    if (token) {
+    const result = await registerForPushNotifications();
+    if (result.token) {
       const registered = await registerDevice(phoneNumber.trim());
       if (registered) {
         await saveSettings({ ...(await getSettings()), pushRegistered: true });
@@ -98,7 +98,7 @@ export default function SettingsScreen() {
         Alert.alert('Registration Failed', 'Could not register with the server. Push notifications may not work.');
       }
     } else {
-      Alert.alert('Permissions Needed', 'Push notification permissions are required to receive secrets.');
+      Alert.alert('Notifications Unavailable', result.error);
     }
   }
 

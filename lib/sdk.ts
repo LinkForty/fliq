@@ -55,7 +55,7 @@ export async function createShareLink(payload: MessagePayload): Promise<string> 
     return result.url;
   } catch (error) {
     console.warn('[Fliq] createLink failed, falling back to standalone URL:', error);
-    throw error; // Surface the error instead of silently falling back
+    return generateShareUrl(payload);
   }
 }
 

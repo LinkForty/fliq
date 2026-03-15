@@ -1,17 +1,19 @@
 # Fliq
 
-A secret message app built with React Native and Expo. Create encrypted messages, choose a fun reveal style (scratch-off or blur), and share them via a link. When the recipient taps the link, the app opens directly to the reveal screen - demonstrating **direct deep linking** with Expo Router.
+A secret message app built with React Native and Expo. Create secret messages, choose a fun reveal style, and deliver them via push notification or shareable link. When the recipient opens the message, the app launches directly to the reveal screen where they flick their phone to uncover the secret.
 
-Fliq also integrates with [LinkForty](https://linkforty.com) to demonstrate real-world mobile attribution: click tracking, install attribution, and in-app event analytics - all visible in the LinkForty Cloud dashboard.
+Fliq also integrates with [LinkForty](https://linkforty.com) for mobile attribution: click tracking, install attribution, and in-app event analytics — all visible in the LinkForty Cloud dashboard.
 
 ## Features
 
-- **Create secret messages** - write a message, pick a reveal style, and share via the native share sheet
-- **Scratch-off reveal** - drag your finger to scratch away the overlay and uncover the message
-- **Blur reveal** - tap and hold to gradually deblur the message; release to snap back
-- **Deep linking** - universal links and app scheme links route directly to the reveal screen
-- **LinkForty integration** - optional SDK connection for click tracking, install attribution, and event analytics
-- **Two modes** - works standalone (no backend) or connected to a LinkForty dashboard
+- **Push to Phone** — send secrets directly to a phone number via push notification. No links, no chat history, no trace.
+- **Share Link** — generate a shareable URL and send it via iMessage, WhatsApp, or any messaging app
+- **Flick to reveal** — recipients flick their phone to uncover the secret message
+- **Ephemeral push messages** — push-delivered messages are deleted from the server the moment they're opened
+- **Deep linking** — universal links and app scheme links route directly to the reveal screen
+- **Onboarding** — guided setup with name, phone number, and push notification permission
+- **LinkForty integration** — optional SDK connection for click tracking, install attribution, and event analytics
+- **Two modes** — works standalone (no backend) or connected to a LinkForty dashboard
 
 ## Tech Stack
 
@@ -19,6 +21,7 @@ Fliq also integrates with [LinkForty](https://linkforty.com) to demonstrate real
 - [NativeWind v4](https://www.nativewind.dev/) (Tailwind CSS for React Native)
 - [React Native Reanimated](https://docs.swmansion.com/react-native-reanimated/) (animations)
 - [AsyncStorage](https://react-native-async-storage.github.io/async-storage/) (local message persistence)
+- [Expo Notifications](https://docs.expo.dev/versions/latest/sdk/notifications/) (push notification delivery)
 - [@linkforty/mobile-sdk-expo](https://github.com/linkforty/core) (optional deep linking & attribution SDK)
 
 ## Getting Started
@@ -37,7 +40,30 @@ npx expo start
 
 Press `i` to open in iOS Simulator or `a` for Android Emulator.
 
-The app works immediately in **standalone mode** - no backend or API key required. Messages are base64-encoded directly into the share URL.
+The app works immediately in **standalone mode** — no backend or API key required. Messages are base64-encoded directly into the share URL. Push notifications require the Fliq backend server (see `server/`).
+
+## Delivery Modes
+
+### Push to Phone
+
+Send a secret directly to a recipient's phone number. The message is delivered as a push notification and the recipient opens it directly in the app.
+
+- Requires both sender and recipient to have Fliq installed with push notifications enabled
+- Messages are stored on the server only until opened, then permanently deleted
+- If the recipient doesn't have Fliq, the app offers to fall back to link sharing
+
+### Share Link
+
+Generate a shareable URL and send it through any messaging app. Works without any backend — the message is encoded directly into the URL.
+
+## Fliq Backend Server
+
+The `server/` directory contains a lightweight Express server that powers push notification delivery. See [`server/README.md`](server/README.md) for setup and API documentation.
+
+The server handles:
+- Device registration (phone number + push token)
+- Push message delivery via Expo Push Notifications
+- Ephemeral message storage (auto-deleted on read, 24h TTL)
 
 ## LinkForty Integration
 
@@ -97,12 +123,13 @@ The app also responds to `fliq://s?m=...` for direct app-to-app linking.
 app/
 ├── _layout.tsx          # Root layout (theme, SDK init, deep link handlers)
 ├── (tabs)/
-│   ├── _layout.tsx      # Home screen layout with settings gear
+│   ├── _layout.tsx      # Home screen layout
 │   └── index.tsx        # Message list with FAB
-├── create.tsx           # Create & share a secret message
+├── create.tsx           # Create & send a secret (push or link)
+├── onboarding.tsx       # Guided setup (name, phone, push permissions)
 ├── reveal/[id].tsx      # Reveal screen (loads message by ID)
 ├── s.tsx                # Standalone deep link entry point
-└── settings.tsx         # LinkForty API key configuration
+└── settings.tsx         # Profile, push registration, and LinkForty API key
 
 components/
 ├── BlurReveal.tsx       # Tap-and-hold blur reveal animation
@@ -110,13 +137,19 @@ components/
 
 lib/
 ├── sdk.ts               # LinkForty SDK wrapper (two-mode pattern)
-├── settings.ts          # API key persistence
+├── push.ts              # Push notification registration and messaging
+├── settings.ts          # User preferences persistence
 ├── deep-link-router.ts  # SDK deep link → message → reveal navigation
 ├── deeplink.ts          # Standalone URL encoding/decoding
 ├── storage.ts           # AsyncStorage CRUD for messages
 ├── types.ts             # TypeScript type definitions
 ├── reveal-styles.ts     # Reveal style metadata
 └── time.ts              # Relative time formatting
+
+server/
+├── index.ts             # Express API server for push delivery
+├── package.json         # Server dependencies
+└── README.md            # Server setup and API docs
 ```
 
 ## License

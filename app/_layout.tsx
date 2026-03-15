@@ -7,7 +7,7 @@ import * as SplashScreen from 'expo-splash-screen';
 import * as Notifications from 'expo-notifications';
 import { type EventSubscription } from 'expo-modules-core';
 import { useEffect, useRef } from 'react';
-import { useColorScheme } from 'react-native';
+import { Pressable, Text, useColorScheme } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { initializeSDK, onDeepLink, onDeferredDeepLink, trackEvent } from '@/lib/sdk';
 import { handleSDKDeepLink } from '@/lib/deep-link-router';
@@ -49,7 +49,11 @@ export default function RootLayout() {
       // Check onboarding status, then initialize SDK
       isOnboardingComplete().then((complete) => {
         if (!complete) {
-          router.replace('/onboarding');
+          try {
+            router.replace('/onboarding');
+          } catch {
+            // Navigation not ready yet — will redirect on next mount
+          }
         }
       });
 
@@ -86,7 +90,11 @@ export default function RootLayout() {
               revealStyle: message.revealStyle,
               source: 'push',
             });
-            router.push(`/reveal/${id}`);
+            try {
+              router.push(`/reveal/${id}`);
+            } catch {
+              // Navigation context not ready — message is saved and will appear in inbox
+            }
           }
         }
       });
@@ -104,9 +112,19 @@ export default function RootLayout() {
     <GestureHandlerRootView style={{ flex: 1 }}>
       <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
         <Stack>
-          <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+          <Stack.Screen
+            name="(tabs)"
+            options={{
+              title: 'Fliq',
+              headerRight: () => (
+                <Pressable onPress={() => router.push('/settings')} className="px-2">
+                  <Text className="text-2xl">{'\u2699\uFE0F'}</Text>
+                </Pressable>
+              ),
+            }}
+          />
           <Stack.Screen name="onboarding" options={{ headerShown: false, gestureEnabled: false }} />
-          <Stack.Screen name="create" options={{ title: 'Create Secret', presentation: 'modal' }} />
+          <Stack.Screen name="create" options={{ title: 'Create Secret' }} />
           <Stack.Screen name="reveal/[id]" options={{ title: '', headerBackTitle: 'Back', headerTransparent: true }} />
           <Stack.Screen name="s" options={{ headerShown: false }} />
           <Stack.Screen name="settings" options={{ title: 'Settings', headerBackTitle: 'Back' }} />
