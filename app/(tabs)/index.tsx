@@ -3,6 +3,7 @@ import { View, Text, FlatList, Pressable, Alert } from 'react-native';
 import { useRouter, useFocusEffect } from 'expo-router';
 import Swipeable from 'react-native-gesture-handler/ReanimatedSwipeable';
 import { getMessages, deleteMessage } from '@/lib/storage';
+import { trackEvent } from '@/lib/sdk';
 import { timeAgo } from '@/lib/time';
 import { REVEAL_STYLES } from '@/lib/reveal-styles';
 import type { Message } from '@/lib/types';
@@ -25,6 +26,7 @@ export default function HomeScreen() {
         style: 'destructive',
         onPress: async () => {
           await deleteMessage(id);
+          trackEvent('message_deleted', { direction: 'manual' });
           setMessages((prev) => prev.filter((m) => m.id !== id));
         },
       },

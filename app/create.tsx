@@ -14,18 +14,23 @@ import { useRouter } from 'expo-router';
 import { saveMessage } from '@/lib/storage';
 import { getSettings } from '@/lib/settings';
 import { isPayloadTooLarge } from '@/lib/deeplink';
-import { createShareLink, isConnected } from '@/lib/sdk';
+import { createShareLink, isConnected, trackEvent } from '@/lib/sdk';
+import { sendPushMessage } from '@/lib/push';
 import { REVEAL_STYLES } from '@/lib/reveal-styles';
 import type { RevealStyle, Message } from '@/lib/types';
 
 const MAX_CONTENT_LENGTH = 500;
 const AVAILABLE_STYLES: RevealStyle[] = ['flick'];
 
+type SendMode = 'link' | 'push';
+
 export default function CreateScreen() {
   const router = useRouter();
   const [content, setContent] = useState('');
   const [senderName, setSenderName] = useState('');
   const [revealStyle, setRevealStyle] = useState<RevealStyle>('flick');
+  const [sendMode, setSendMode] = useState<SendMode>('push');
+  const [recipientPhone, setRecipientPhone] = useState('');
   const [sharing, setSharing] = useState(false);
 
   useEffect(() => {
@@ -37,7 +42,8 @@ export default function CreateScreen() {
   const canShare =
     content.trim().length > 0 &&
     senderName.trim().length > 0 &&
-    content.length <= MAX_CONTENT_LENGTH;
+    content.length <= MAX_CONTENT_LENGTH &&
+    (sendMode === 'link' || recipientPhone.trim().length >= 7);
 
   async function handleShare() {
     if (!canShare || sharing) return;
@@ -48,7 +54,78 @@ export default function CreateScreen() {
       senderName: senderName.trim(),
     };
 
-    // Only check payload size in standalone mode (connected mode uses server-side links)
+    setSharing(true);
+
+    try {
+      if (sendMode === 'push') {
+        await handlePushSend(payload);
+      } else {
+        await handleLinkShare(payload);
+      }
+    } catch (error: unknown) {
+      if (
+        error instanceof Error &&
+        error.message !== 'User did not share'
+      ) {
+        Alert.alert('Error', 'Failed to send. Please try again.');
+      }
+    } finally {
+      setSharing(false);
+    }
+  }
+
+  async function handlePushSend(payload: { content: string; revealStyle: RevealStyle; senderName: string }) {
+    const result = await sendPushMessage({
+      recipientPhone: recipientPhone.trim(),
+      content: payload.content,
+      revealStyle: payload.revealStyle,
+      senderName: payload.senderName,
+    });
+
+    if ('error' in result) {
+      if (result.error.includes('No Fliq device')) {
+        Alert.alert(
+          'Not on Fliq',
+          'That phone number isn\'t registered on Fliq yet. Share a link instead?',
+          [
+            { text: 'Cancel', style: 'cancel' },
+            { text: 'Share Link', onPress: () => setSendMode('link') },
+          ],
+        );
+      } else {
+        Alert.alert('Error', result.error);
+      }
+      return;
+    }
+
+    trackEvent('message_created', {
+      revealStyle: payload.revealStyle,
+      contentLength: payload.content.length,
+      mode: 'push',
+    });
+
+    // Save locally if auto-delete-after-send is off
+    const settings = await getSettings();
+    if (!settings.autoDeleteAfterSend) {
+      const message: Message = {
+        id: Date.now().toString(36) + Math.random().toString(36).slice(2, 8),
+        content: payload.content,
+        revealStyle: payload.revealStyle,
+        senderName: payload.senderName,
+        createdAt: new Date().toISOString(),
+        isRead: true,
+        direction: 'sent',
+      };
+      await saveMessage(message);
+    }
+
+    Alert.alert('Sent', 'Your secret was delivered via push notification.', [
+      { text: 'OK', onPress: () => router.back() },
+    ]);
+  }
+
+  async function handleLinkShare(payload: { content: string; revealStyle: RevealStyle; senderName: string }) {
+    // Only check payload size in standalone mode
     if (!isConnected() && isPayloadTooLarge(payload)) {
       Alert.alert(
         'Message too long',
@@ -57,47 +134,38 @@ export default function CreateScreen() {
       return;
     }
 
-    setSharing(true);
+    const url = await createShareLink(payload);
+    trackEvent('message_created', {
+      revealStyle: payload.revealStyle,
+      contentLength: payload.content.length,
+      mode: isConnected() ? 'connected' : 'standalone',
+    });
 
-    try {
-      const url = await createShareLink(payload);
-
-      const settings = await getSettings();
-      if (!settings.autoDeleteAfterSend) {
-        const message: Message = {
-          id: Date.now().toString(36) + Math.random().toString(36).slice(2, 8),
-          content: payload.content,
-          revealStyle: payload.revealStyle,
-          senderName: payload.senderName,
-          createdAt: new Date().toISOString(),
-          isRead: true,
-          direction: 'sent',
-        };
-
-        await saveMessage(message);
-      }
-
-      await Share.share(
-        {
-          message: `I sent you a secret! 🤫\n${url}`,
-          url, // iOS uses this for rich preview
-        },
-        {
-          subject: 'I sent you a secret!',
-        },
-      );
-
-      router.back();
-    } catch (error: unknown) {
-      if (
-        error instanceof Error &&
-        error.message !== 'User did not share'
-      ) {
-        Alert.alert('Error', 'Failed to share. Please try again.');
-      }
-    } finally {
-      setSharing(false);
+    const settings = await getSettings();
+    if (!settings.autoDeleteAfterSend) {
+      const message: Message = {
+        id: Date.now().toString(36) + Math.random().toString(36).slice(2, 8),
+        content: payload.content,
+        revealStyle: payload.revealStyle,
+        senderName: payload.senderName,
+        createdAt: new Date().toISOString(),
+        isRead: true,
+        direction: 'sent',
+      };
+      await saveMessage(message);
     }
+
+    await Share.share(
+      {
+        message: `I sent you a secret! \u{1F92B}\n${url}`,
+        url,
+      },
+      {
+        subject: 'I sent you a secret!',
+      },
+    );
+
+    router.back();
   }
 
   return (
@@ -188,7 +256,70 @@ export default function CreateScreen() {
           })}
         </ScrollView>
 
-        {/* Share button */}
+        {/* Send mode toggle */}
+        <Text className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">
+          Delivery method
+        </Text>
+        <View className="flex-row mb-5 bg-gray-100 dark:bg-gray-800 rounded-xl p-1">
+          <Pressable
+            onPress={() => setSendMode('push')}
+            className={`flex-1 rounded-lg py-3 items-center ${
+              sendMode === 'push'
+                ? 'bg-white dark:bg-gray-700 shadow-sm'
+                : ''
+            }`}
+          >
+            <Text
+              className={`font-semibold text-sm ${
+                sendMode === 'push'
+                  ? 'text-indigo-600 dark:text-indigo-400'
+                  : 'text-gray-500 dark:text-gray-400'
+              }`}
+            >
+              Push to Phone
+            </Text>
+          </Pressable>
+          <Pressable
+            onPress={() => setSendMode('link')}
+            className={`flex-1 rounded-lg py-3 items-center ${
+              sendMode === 'link'
+                ? 'bg-white dark:bg-gray-700 shadow-sm'
+                : ''
+            }`}
+          >
+            <Text
+              className={`font-semibold text-sm ${
+                sendMode === 'link'
+                  ? 'text-indigo-600 dark:text-indigo-400'
+                  : 'text-gray-500 dark:text-gray-400'
+              }`}
+            >
+              Share Link
+            </Text>
+          </Pressable>
+        </View>
+
+        {/* Recipient phone (push mode only) */}
+        {sendMode === 'push' && (
+          <>
+            <Text className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">
+              Recipient&apos;s phone number
+            </Text>
+            <TextInput
+              value={recipientPhone}
+              onChangeText={setRecipientPhone}
+              placeholder="+1 (555) 123-4567"
+              placeholderTextColor="#9ca3af"
+              keyboardType="phone-pad"
+              className="bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl px-4 py-3 text-gray-900 dark:text-white text-base mb-1"
+            />
+            <Text className="text-xs text-gray-400 dark:text-gray-500 mb-5">
+              They must have Fliq installed to receive push secrets
+            </Text>
+          </>
+        )}
+
+        {/* Send/Share button */}
         <Pressable
           onPress={handleShare}
           disabled={!canShare || sharing}
@@ -199,7 +330,11 @@ export default function CreateScreen() {
           }`}
         >
           <Text className="text-white font-semibold text-base">
-            {sharing ? 'Sharing...' : 'Share Secret 🤫'}
+            {sharing
+              ? 'Sending...'
+              : sendMode === 'push'
+                ? 'Send Secret'
+                : 'Share Secret \u{1F92B}'}
           </Text>
         </Pressable>
       </ScrollView>

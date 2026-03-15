@@ -1,0 +1,23 @@
+{
+  "name": "fliq-server",
+  "version": "1.0.0",
+  "type": "module",
+  "description": "Lightweight push messaging backend for the Fliq app",
+  "scripts": {
+    "dev": "tsx watch src/index.ts",
+    "build": "tsc",
+    "start": "node dist/index.js"
+  },
+  "dependencies": {
+    "expo-server-sdk": "^3.13.0",
+    "fastify": "^4.24.0",
+    "pg": "^8.11.0",
+    "zod": "^3.22.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.8.0",
+    "@types/pg": "^8.10.0",
+    "tsx": "^4.0.0",
+    "typescript": "^5.2.0"
+  }
+}

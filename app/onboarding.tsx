@@ -10,35 +10,40 @@ import {
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import Animated, {
-  FadeIn,
-  FadeOut,
   SlideInRight,
   SlideOutLeft,
 } from 'react-native-reanimated';
 import { getSettings, saveSettings } from '@/lib/settings';
+import { trackEvent } from '@/lib/sdk';
+import { registerForPushNotifications, registerDevice } from '@/lib/push';
 
-const TOTAL_STEPS = 4;
+const TOTAL_STEPS = 5;
 
 const STEPS = [
   {
-    emoji: '🤫',
+    emoji: '\u{1F92B}',
     title: 'Welcome to Fliq',
     body: 'Send secret messages that only the recipient can reveal.',
   },
   {
-    emoji: '🫰',
+    emoji: '\u{1FAF0}',
     title: 'Flick to Reveal',
-    body: 'Give your phone a quick flick to reveal messages — that\'s the Fliq way!\n\nYou can also scratch or tap to reveal. Choose a style each time you send.',
+    body: 'Give your phone a quick flick to reveal messages \u2014 that\'s the Fliq way!\n\nYou can also scratch or tap to reveal. Choose a style each time you send.',
   },
   {
-    emoji: '🔒',
+    emoji: '\u{1F514}',
+    title: 'Push Delivery',
+    body: 'Send secrets directly to a phone number via push notification. No links, no chat history, no trace.\n\nMessages are deleted from the server the moment they\'re opened.',
+  },
+  {
+    emoji: '\u{1F512}',
     title: 'Your Privacy, Your Data',
-    body: 'Messages are stored only on your phone — never in a database.\n\nDelete them anytime. By default, messages vanish after you read them.',
+    body: 'Messages are stored only on your phone \u2014 never in a database.\n\nDelete them anytime. By default, messages vanish after you read them.',
   },
   {
-    emoji: '👋',
-    title: 'What should we call you?',
-    body: 'This will be your default name when sending secrets. You can always change it later.',
+    emoji: '\u{1F44B}',
+    title: 'Set Up Your Profile',
+    body: 'Enter your name and phone number to receive push secrets from friends.',
   },
 ];
 
@@ -46,6 +51,7 @@ export default function OnboardingScreen() {
   const router = useRouter();
   const [step, setStep] = useState(0);
   const [name, setName] = useState('');
+  const [phone, setPhone] = useState('');
   const nameInputRef = useRef<TextInput>(null);
 
   const isLastStep = step === TOTAL_STEPS - 1;
@@ -57,12 +63,30 @@ export default function OnboardingScreen() {
         Alert.alert('Enter your name', 'We need a name to get started!');
         return;
       }
+      if (!phone.trim() || phone.trim().length < 7) {
+        Alert.alert('Enter your phone number', 'We need your phone number so friends can send you secrets.');
+        return;
+      }
+
       const settings = await getSettings();
       await saveSettings({
         ...settings,
         userName: name.trim(),
+        phoneNumber: phone.trim(),
         onboardingComplete: true,
       });
+
+      // Request push notification permissions and register device
+      const pushToken = await registerForPushNotifications();
+      if (pushToken) {
+        const registered = await registerDevice(phone.trim());
+        if (registered) {
+          const s = await getSettings();
+          await saveSettings({ ...s, pushRegistered: true });
+        }
+      }
+
+      trackEvent('onboarding_completed', { userName: name.trim(), hasPush: !!pushToken });
       router.replace('/');
     } else {
       setStep((s) => s + 1);
@@ -92,20 +116,34 @@ export default function OnboardingScreen() {
             {current.body}
           </Text>
 
-          {/* Name input on last step */}
+          {/* Profile inputs on last step */}
           {isLastStep && (
-            <TextInput
-              ref={nameInputRef}
-              value={name}
-              onChangeText={setName}
-              placeholder="Your name"
-              placeholderTextColor="#9ca3af"
-              autoFocus
-              autoCapitalize="words"
-              returnKeyType="done"
-              onSubmitEditing={handleNext}
-              className="mt-8 w-full bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl px-4 py-3.5 text-gray-900 dark:text-white text-lg text-center"
-            />
+            <View className="w-full mt-8">
+              <TextInput
+                ref={nameInputRef}
+                value={name}
+                onChangeText={setName}
+                placeholder="Your name"
+                placeholderTextColor="#9ca3af"
+                autoFocus
+                autoCapitalize="words"
+                returnKeyType="next"
+                className="w-full bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl px-4 py-3.5 text-gray-900 dark:text-white text-lg text-center"
+              />
+              <TextInput
+                value={phone}
+                onChangeText={setPhone}
+                placeholder="Phone number"
+                placeholderTextColor="#9ca3af"
+                keyboardType="phone-pad"
+                returnKeyType="done"
+                onSubmitEditing={handleNext}
+                className="w-full mt-3 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl px-4 py-3.5 text-gray-900 dark:text-white text-lg text-center"
+              />
+              <Text className="text-xs text-gray-400 dark:text-gray-500 text-center mt-2">
+                Your phone number is only used to receive push secrets
+              </Text>
+            </View>
           )}
         </Animated.View>
 

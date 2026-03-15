@@ -3,6 +3,7 @@ import { View, Text } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { decodeMessage } from '@/lib/deeplink';
 import { saveMessage } from '@/lib/storage';
+import { trackEvent } from '@/lib/sdk';
 import type { Message } from '@/lib/types';
 
 /**
@@ -45,6 +46,10 @@ export default function DeepLinkEntry() {
     };
 
     await saveMessage(msg);
+    trackEvent('message_received', {
+      revealStyle: msg.revealStyle,
+      source: 'standalone_link',
+    });
 
     // Replace so the user can't go "back" to this loading screen
     router.replace(`/reveal/${id}`);
