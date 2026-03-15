@@ -7,7 +7,7 @@ import { getSettings } from './settings';
 const DEVICE_ID_KEY = '@fliq/device_id';
 const PUSH_TOKEN_KEY = '@fliq/push_token';
 
-const API_BASE = 'https://fliq-api.linkforty.com';
+const API_BASE = 'https://api-production-e140.up.railway.app';
 
 function getApiBase(): string {
   if (__DEV__) {
