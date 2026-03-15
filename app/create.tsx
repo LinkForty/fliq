@@ -10,7 +10,7 @@ import {
   KeyboardAvoidingView,
   Platform,
 } from 'react-native';
-import { useRouter } from 'expo-router';
+import { router } from 'expo-router';
 import { saveMessage } from '@/lib/storage';
 import { getSettings } from '@/lib/settings';
 import { isPayloadTooLarge } from '@/lib/deeplink';
@@ -25,7 +25,6 @@ const AVAILABLE_STYLES: RevealStyle[] = ['flick'];
 type SendMode = 'link' | 'push';
 
 export default function CreateScreen() {
-  const router = useRouter();
   const [content, setContent] = useState('');
   const [senderName, setSenderName] = useState('');
   const [revealStyle, setRevealStyle] = useState<RevealStyle>('flick');
@@ -171,11 +170,11 @@ export default function CreateScreen() {
   return (
     <KeyboardAvoidingView
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-      className="flex-1"
+      style={{ flex: 1 }}
     >
       <ScrollView
-        className="flex-1 bg-white dark:bg-gray-900"
-        contentContainerClassName="p-5"
+        style={{ flex: 1, backgroundColor: '#fff' }}
+        contentContainerStyle={{ padding: 20 }}
         keyboardShouldPersistTaps="handled"
       >
         {/* From name */}
@@ -260,39 +259,55 @@ export default function CreateScreen() {
         <Text className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">
           Delivery method
         </Text>
-        <View className="flex-row mb-5 bg-gray-100 dark:bg-gray-800 rounded-xl p-1">
+        <View
+          style={{
+            flexDirection: 'row',
+            marginBottom: 20,
+            backgroundColor: '#f3f4f6',
+            borderRadius: 12,
+            padding: 4,
+          }}
+        >
           <Pressable
             onPress={() => setSendMode('push')}
-            className={`flex-1 rounded-lg py-3 items-center ${
-              sendMode === 'push'
-                ? 'bg-white dark:bg-gray-700 shadow-sm'
-                : ''
-            }`}
+            style={{
+              flex: 1,
+              borderRadius: 8,
+              paddingVertical: 12,
+              alignItems: 'center',
+              ...(sendMode === 'push'
+                ? { backgroundColor: '#fff', shadowColor: '#000', shadowOpacity: 0.05, shadowRadius: 2, shadowOffset: { width: 0, height: 1 } }
+                : {}),
+            }}
           >
             <Text
-              className={`font-semibold text-sm ${
-                sendMode === 'push'
-                  ? 'text-indigo-600 dark:text-indigo-400'
-                  : 'text-gray-500 dark:text-gray-400'
-              }`}
+              style={{
+                fontWeight: '600',
+                fontSize: 14,
+                color: sendMode === 'push' ? '#4f46e5' : '#6b7280',
+              }}
             >
               Push to Phone
             </Text>
           </Pressable>
           <Pressable
             onPress={() => setSendMode('link')}
-            className={`flex-1 rounded-lg py-3 items-center ${
-              sendMode === 'link'
-                ? 'bg-white dark:bg-gray-700 shadow-sm'
-                : ''
-            }`}
+            style={{
+              flex: 1,
+              borderRadius: 8,
+              paddingVertical: 12,
+              alignItems: 'center',
+              ...(sendMode === 'link'
+                ? { backgroundColor: '#fff', shadowColor: '#000', shadowOpacity: 0.05, shadowRadius: 2, shadowOffset: { width: 0, height: 1 } }
+                : {}),
+            }}
           >
             <Text
-              className={`font-semibold text-sm ${
-                sendMode === 'link'
-                  ? 'text-indigo-600 dark:text-indigo-400'
-                  : 'text-gray-500 dark:text-gray-400'
-              }`}
+              style={{
+                fontWeight: '600',
+                fontSize: 14,
+                color: sendMode === 'link' ? '#4f46e5' : '#6b7280',
+              }}
             >
               Share Link
             </Text>

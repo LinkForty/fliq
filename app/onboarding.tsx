@@ -63,15 +63,12 @@ export default function OnboardingScreen() {
   const current = STEPS[step];
 
   async function handleEnablePush() {
-    const token = await registerForPushNotifications();
-    if (token) {
-      setPushToken(token);
+    const result = await registerForPushNotifications();
+    if (result.token) {
+      setPushToken(result.token);
       setPushEnabled(true);
     } else {
-      Alert.alert(
-        'Notifications Disabled',
-        'You can enable them later in Settings to receive push secrets.',
-      );
+      Alert.alert('Notifications Unavailable', result.error);
     }
   }
 
@@ -213,17 +210,6 @@ export default function OnboardingScreen() {
             </Text>
           </Pressable>
 
-          {/* Skip on non-last steps */}
-          {!isLastStep && (
-            <Pressable
-              onPress={() => setStep(PROFILE_STEP)}
-              className="mt-4 py-2"
-            >
-              <Text className="text-gray-400 dark:text-gray-500 text-sm">
-                Skip
-              </Text>
-            </Pressable>
-          )}
         </View>
       </View>
     </KeyboardAvoidingView>

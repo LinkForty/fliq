@@ -29,12 +29,13 @@ export async function getDeviceId(): Promise<string> {
 
 /**
  * Request notification permissions and get the Expo push token.
- * Returns the token string, or null if permissions denied or unavailable.
+ * Returns { token } on success, or { error } with a user-facing message.
  */
-export async function registerForPushNotifications(): Promise<string | null> {
+export async function registerForPushNotifications(): Promise<
+  { token: string; error?: never } | { token?: never; error: string }
+> {
   if (!Device.isDevice) {
-    console.warn('[Fliq] Push notifications require a physical device');
-    return null;
+    return { error: 'Push notifications require a physical device. They cannot be tested on the simulator.' };
   }
 
   const { status: existing } = await Notifications.getPermissionsAsync();
@@ -46,7 +47,7 @@ export async function registerForPushNotifications(): Promise<string | null> {
   }
 
   if (finalStatus !== 'granted') {
-    return null;
+    return { error: 'Notification permissions were denied. Go to Settings > Fliq > Notifications to enable them.' };
   }
 
   // Android notification channel
@@ -60,15 +61,14 @@ export async function registerForPushNotifications(): Promise<string | null> {
 
   const projectId = Constants.expoConfig?.extra?.eas?.projectId;
   if (!projectId) {
-    console.warn('[Fliq] Missing EAS project ID');
-    return null;
+    return { error: 'Missing EAS project ID. Push notifications are not configured for this build.' };
   }
 
   const tokenData = await Notifications.getExpoPushTokenAsync({ projectId });
 
   const token = tokenData.data;
   await AsyncStorage.setItem(PUSH_TOKEN_KEY, token);
-  return token;
+  return { token };
 }
 
 /**

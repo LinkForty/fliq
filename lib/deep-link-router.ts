@@ -33,5 +33,17 @@ export async function handleSDKDeepLink(data: DeepLinkData | null): Promise<void
     revealStyle: msg.revealStyle,
     source: 'sdk_deep_link',
   });
-  router.replace(`/reveal/${id}`);
+
+  try {
+    router.replace(`/reveal/${id}`);
+  } catch {
+    // Navigation context may not be ready — retry after a short delay
+    setTimeout(() => {
+      try {
+        router.replace(`/reveal/${id}`);
+      } catch {
+        // Navigation still unavailable — user will see the message in their inbox
+      }
+    }, 500);
+  }
 }

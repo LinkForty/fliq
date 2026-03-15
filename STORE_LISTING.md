@@ -13,31 +13,38 @@ Send secret messages that friends reveal by flicking their phone.
 
 Send secret messages with a twist — recipients have to flick their phone to reveal what you wrote.
 
-Fliq is a fun, privacy-first messaging app where every message is hidden behind a playful reveal animation. Write a secret, share a link, and watch your friends flick to uncover it.
+Fliq is a fun, privacy-first messaging app where every message is hidden behind a playful reveal animation. Send a secret directly to a phone number or share a link — then watch your friends flick to uncover it.
 
 HOW IT WORKS
 
 1. Write your secret message
-2. Share the link with a friend
-3. They open it and flick their phone to reveal
+2. Choose a delivery method — push it to a phone number or share a link
+3. Your friend opens it and flicks their phone to reveal the secret
 
-No accounts. No sign-ups. No data stored on servers. Just fun, private messages between friends.
+PUSH TO PHONE
+
+Send secrets directly to a friend's phone number via push notification. No links, no chat history, no trace. Messages are deleted from the server the moment they're opened.
+
+SHARE A LINK
+
+Generate a shareable link and send it through iMessage, WhatsApp, or any messaging app. Works without an internet connection — the message is encoded right into the URL.
 
 PRIVACY BY DESIGN
 
 - Messages are stored only on your device
-- No accounts or personal information required
+- Push messages are deleted from the server the moment they're read
 - Messages auto-delete after reading (configurable)
 - No ads, no tracking, no data collection
 - Open source — see exactly how it works
 
 FEATURES
 
+- Push to Phone — send secrets directly to a phone number via push notification
+- Share Link — send via iMessage, WhatsApp, Instagram, or any messaging app
 - Flick to reveal — give your phone a quick shake to uncover the secret
-- Share via any app — iMessage, WhatsApp, Instagram, or any messaging app
+- Ephemeral messages — push-delivered secrets are deleted from the server on read
 - Dark mode — looks great day or night
-- Works offline — create and read messages without internet
-- No sign-up required — start sending secrets immediately
+- Works offline — create and read link-shared messages without internet
 
 OPEN SOURCE
 
@@ -76,10 +83,10 @@ https://linkforty.com
 
 ### iPhone 6.7" (required — iPhone 15 Pro Max, 1290x2796)
 1. Onboarding — "Welcome to Fliq" with 🤫 emoji
-2. Create message screen — composing a secret with flick style selected
-3. Flick reveal — cover screen with 🫰 "Flick to reveal" prompt
-4. Message revealed — secret text visible after flicking
-5. Home screen — message list with sent/received messages
+2. Create message screen — composing a secret with "Push to Phone" selected
+3. Create message screen — "Share Link" delivery mode selected
+4. Flick reveal — cover screen with 🫰 "Flick to reveal" prompt
+5. Message revealed — secret text visible after flicking
 
 ### iPhone 6.5" (required — iPhone 11 Pro Max, 1242x2688)
 Same 5 screenshots at this resolution
@@ -99,16 +106,17 @@ Same 5 screenshots
 5. Flick phone — message reveals with animation
 
 ## What's New (v1.0.0)
-Initial release — send secret messages that friends reveal by flicking their phone.
+Initial release — send secret messages that friends reveal by flicking their phone. Deliver via push notification or shareable link.
 
 ## Review Notes (for Apple reviewer)
-Fliq is a standalone messaging app. No account or login is required. To test:
+Fliq is a messaging app with two delivery modes: push notification and shareable link. To test:
 
-1. Open the app and complete onboarding (enter any name)
-2. Tap the + button to create a message
-3. Type any message and tap "Share Secret"
-4. The share sheet will open — you can copy the link
-5. Paste the link in Safari to test receiving
-6. In the app, the received message can be revealed by shaking/flicking the device
+1. Open the app and complete onboarding (enter any name and phone number)
+2. Enable push notifications when prompted
+3. Tap the + button to create a message
+4. **Push to Phone mode:** Enter a recipient phone number and tap "Send Secret" — if the recipient has the app installed, they receive a push notification
+5. **Share Link mode:** Toggle to "Share Link", tap "Share Secret" — the share sheet opens with a link you can copy
+6. Paste a copied link in Safari to test the link-based receive flow
+7. In the app, reveal a received message by shaking/flicking the device
 
-The app works entirely offline in standalone mode. The optional LinkForty integration (in Settings) connects to our analytics platform but is not required.
+Push notifications require a physical device (not available in Simulator). The push backend server handles message delivery and deletes messages from the server after they are read by the recipient (24-hour TTL). The optional LinkForty integration (in Settings) connects to our analytics platform but is not required for core functionality.
