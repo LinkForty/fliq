@@ -66,6 +66,7 @@
     },
     "extra": {
       "router": {},
+      "pushApiUrl": "https://api-production-e140.up.railway.app",
       "eas": {
         "projectId": "8ea1ee77-7bab-4138-ad5a-f6e59f73487c"
       }

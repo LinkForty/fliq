@@ -1,5 +1,6 @@
 import * as Notifications from 'expo-notifications';
 import * as Device from 'expo-device';
+import Constants from 'expo-constants';
 import { Platform } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { getSettings } from './settings';
@@ -7,13 +8,11 @@ import { getSettings } from './settings';
 const DEVICE_ID_KEY = '@fliq/device_id';
 const PUSH_TOKEN_KEY = '@fliq/push_token';
 
-const API_BASE = 'https://api-production-e140.up.railway.app';
-
 function getApiBase(): string {
   if (__DEV__) {
     return Platform.OS === 'android' ? 'http://10.0.2.2:3100' : 'http://localhost:3100';
   }
-  return API_BASE;
+  return Constants.expoConfig?.extra?.pushApiUrl ?? 'https://fliq-api.example.com';
 }
 
 /**
@@ -59,9 +58,13 @@ export async function registerForPushNotifications(): Promise<string | null> {
     });
   }
 
-  const tokenData = await Notifications.getExpoPushTokenAsync({
-    projectId: '8ea1ee77-7bab-4138-ad5a-f6e59f73487c',
-  });
+  const projectId = Constants.expoConfig?.extra?.eas?.projectId;
+  if (!projectId) {
+    console.warn('[Fliq] Missing EAS project ID');
+    return null;
+  }
+
+  const tokenData = await Notifications.getExpoPushTokenAsync({ projectId });
 
   const token = tokenData.data;
   await AsyncStorage.setItem(PUSH_TOKEN_KEY, token);
