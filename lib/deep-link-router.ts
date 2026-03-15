@@ -1,5 +1,6 @@
 import { router } from 'expo-router';
 import { saveMessage } from './storage';
+import { trackEvent } from './sdk';
 import type { Message } from './types';
 import type { DeepLinkData } from '@linkforty/mobile-sdk-expo';
 import type { RevealStyle } from './types';
@@ -28,5 +29,9 @@ export async function handleSDKDeepLink(data: DeepLinkData | null): Promise<void
   };
 
   await saveMessage(msg);
+  trackEvent('message_received', {
+    revealStyle: msg.revealStyle,
+    source: 'sdk_deep_link',
+  });
   router.replace(`/reveal/${id}`);
 }

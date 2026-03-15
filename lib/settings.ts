@@ -10,6 +10,8 @@ export type FliqSettings = {
   autoDeleteAfterRead: boolean;
   autoDeleteAfterSend: boolean;
   userName?: string;
+  phoneNumber?: string;
+  pushRegistered?: boolean;
   onboardingComplete?: boolean;
 };
 
