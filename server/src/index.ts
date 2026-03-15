@@ -1,3 +1,4 @@
+import 'dotenv/config';
 import Fastify from 'fastify';
 import { initializeDatabase, cleanupMessages } from './database.js';
 import { registerRoutes } from './routes.js';
