@@ -17,6 +17,8 @@ import { getSettings, saveSettings } from '@/lib/settings';
 import { trackEvent } from '@/lib/sdk';
 import { registerForPushNotifications, registerDevice } from '@/lib/push';
 
+const PUSH_STEP = 2;
+const PROFILE_STEP = 4;
 const TOTAL_STEPS = 5;
 
 const STEPS = [
@@ -52,10 +54,26 @@ export default function OnboardingScreen() {
   const [step, setStep] = useState(0);
   const [name, setName] = useState('');
   const [phone, setPhone] = useState('');
+  const [pushEnabled, setPushEnabled] = useState(false);
+  const [pushToken, setPushToken] = useState<string | null>(null);
   const nameInputRef = useRef<TextInput>(null);
 
-  const isLastStep = step === TOTAL_STEPS - 1;
+  const isLastStep = step === PROFILE_STEP;
+  const isPushStep = step === PUSH_STEP;
   const current = STEPS[step];
+
+  async function handleEnablePush() {
+    const token = await registerForPushNotifications();
+    if (token) {
+      setPushToken(token);
+      setPushEnabled(true);
+    } else {
+      Alert.alert(
+        'Notifications Disabled',
+        'You can enable them later in Settings to receive push secrets.',
+      );
+    }
+  }
 
   async function handleNext() {
     if (isLastStep) {
@@ -76,8 +94,7 @@ export default function OnboardingScreen() {
         onboardingComplete: true,
       });
 
-      // Request push notification permissions and register device
-      const pushToken = await registerForPushNotifications();
+      // Register device with backend if push was enabled
       if (pushToken) {
         const registered = await registerDevice(phone.trim());
         if (registered) {
@@ -86,7 +103,7 @@ export default function OnboardingScreen() {
         }
       }
 
-      trackEvent('onboarding_completed', { userName: name.trim(), hasPush: !!pushToken });
+      trackEvent('onboarding_completed', { userName: name.trim(), hasPush: pushEnabled });
       router.replace('/');
     } else {
       setStep((s) => s + 1);
@@ -115,6 +132,29 @@ export default function OnboardingScreen() {
           <Text className="text-base text-gray-500 dark:text-gray-400 text-center leading-relaxed px-4">
             {current.body}
           </Text>
+
+          {/* Enable push button on push step */}
+          {isPushStep && (
+            <View className="w-full mt-8">
+              {pushEnabled ? (
+                <View className="flex-row items-center justify-center py-3">
+                  <View className="w-3 h-3 rounded-full bg-green-500 mr-2" />
+                  <Text className="text-green-600 dark:text-green-400 font-semibold">
+                    Notifications enabled
+                  </Text>
+                </View>
+              ) : (
+                <Pressable
+                  onPress={handleEnablePush}
+                  className="w-full rounded-xl py-4 items-center bg-indigo-500 active:bg-indigo-600"
+                >
+                  <Text className="text-white font-semibold text-base">
+                    Enable Notifications
+                  </Text>
+                </Pressable>
+              )}
+            </View>
+          )}
 
           {/* Profile inputs on last step */}
           {isLastStep && (
@@ -176,7 +216,7 @@ export default function OnboardingScreen() {
           {/* Skip on non-last steps */}
           {!isLastStep && (
             <Pressable
-              onPress={() => setStep(TOTAL_STEPS - 1)}
+              onPress={() => setStep(PROFILE_STEP)}
               className="mt-4 py-2"
             >
               <Text className="text-gray-400 dark:text-gray-500 text-sm">
