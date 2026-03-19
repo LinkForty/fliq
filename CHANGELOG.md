@@ -1,3 +1,10 @@
+## [1.0.1](https://github.com/linkforty/fliq/compare/v1.0.0...v1.0.1) (2026-03-19)
+
+
+### Bug Fixes
+
+* update expo-localization to fix Xcode build error ([5fd323b](https://github.com/linkforty/fliq/commit/5fd323b01a3efb573a04ada290527c4c92a04a93))
+
 # 1.0.0 (2026-03-15)
 
 
