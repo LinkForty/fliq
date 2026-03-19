@@ -1,3 +1,11 @@
+# [1.1.0](https://github.com/linkforty/fliq/compare/v1.0.1...v1.1.0) (2026-03-19)
+
+
+### Features
+
+* add Fliq landing page for fliq.linkforty.com ([1c01eae](https://github.com/linkforty/fliq/commit/1c01eaed65be381d4b542d46f44f3eceec9cbb66))
+* rebrand to LinkForty color scheme and update onboarding content ([910b5a1](https://github.com/linkforty/fliq/commit/910b5a1bfeae699e5930235e0f2026f0cd32ae87)), closes [#26adae](https://github.com/linkforty/fliq/issues/26adae) [#19192d](https://github.com/linkforty/fliq/issues/19192d)
+
 ## [1.0.1](https://github.com/linkforty/fliq/compare/v1.0.0...v1.0.1) (2026-03-19)
 
 
