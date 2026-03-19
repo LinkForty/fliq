@@ -233,7 +233,7 @@ export default function CreateScreen() {
                 onPress={() => setRevealStyle(style)}
                 className={`mr-3 rounded-2xl p-4 w-32 border-2 ${
                   selected
-                    ? 'border-indigo-500 bg-indigo-50 dark:bg-indigo-950'
+                    ? 'border-brand-500 bg-brand-50 dark:bg-brand-950'
                     : 'border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800'
                 }`}
               >
@@ -241,7 +241,7 @@ export default function CreateScreen() {
                 <Text
                   className={`text-sm font-semibold text-center ${
                     selected
-                      ? 'text-indigo-600 dark:text-indigo-400'
+                      ? 'text-brand-600 dark:text-brand-400'
                       : 'text-gray-700 dark:text-gray-300'
                   }`}
                 >
@@ -284,7 +284,7 @@ export default function CreateScreen() {
               style={{
                 fontWeight: '600',
                 fontSize: 14,
-                color: sendMode === 'push' ? '#4f46e5' : '#6b7280',
+                color: sendMode === 'push' ? '#26adae' : '#6b7280',
               }}
             >
               Push to Phone
@@ -306,7 +306,7 @@ export default function CreateScreen() {
               style={{
                 fontWeight: '600',
                 fontSize: 14,
-                color: sendMode === 'link' ? '#4f46e5' : '#6b7280',
+                color: sendMode === 'link' ? '#26adae' : '#6b7280',
               }}
             >
               Share Link
@@ -340,7 +340,7 @@ export default function CreateScreen() {
           disabled={!canShare || sharing}
           className={`rounded-xl py-4 items-center ${
             canShare && !sharing
-              ? 'bg-indigo-500 active:bg-indigo-600'
+              ? 'bg-brand-500 active:bg-brand-600'
               : 'bg-gray-300 dark:bg-gray-700'
           }`}
         >

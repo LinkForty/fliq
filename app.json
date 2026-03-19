@@ -17,8 +17,12 @@
       "supportsTablet": true,
       "bundleIdentifier": "com.linkforty.fliq",
       "associatedDomains": [
+        "applinks:fliq.linkforty.com",
         "applinks:fliq.linkforty.com"
-      ]
+      ],
+      "infoPlist": {
+        "ITSAppUsesNonExemptEncryption": false
+      }
     },
     "android": {
       "package": "com.linkforty.fliq",
@@ -57,7 +61,7 @@
         "expo-notifications",
         {
           "icon": "./assets/images/icon.png",
-          "color": "#6366f1"
+          "color": "#26adae"
         }
       ]
     ],

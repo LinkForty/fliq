@@ -68,13 +68,13 @@ export function FlipReveal({ content, onRevealed }: Props) {
         {/* Front face (cover) */}
         <Animated.View
           style={[StyleSheet.absoluteFill, frontStyle]}
-          className="items-center justify-center bg-indigo-500 dark:bg-indigo-600 p-8 rounded-2xl"
+          className="items-center justify-center bg-brand-500 dark:bg-brand-600 p-8 rounded-2xl"
         >
           <Text className="text-6xl mb-4">🃏</Text>
           <Text className="text-lg font-semibold text-white text-center">
             Tap to flip
           </Text>
-          <Text className="text-sm text-indigo-200 mt-2 text-center">
+          <Text className="text-sm text-brand-200 mt-2 text-center">
             Flip the card to reveal the secret
           </Text>
         </Animated.View>

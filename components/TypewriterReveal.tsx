@@ -79,7 +79,7 @@ export function TypewriterReveal({ content, onRevealed }: Props) {
       <Text className="text-xl text-gray-900 dark:text-white text-center leading-relaxed">
         {content.slice(0, visibleCount)}
         {!done && (
-          <Animated.Text style={cursorStyle} className="text-indigo-500">
+          <Animated.Text style={cursorStyle} className="text-brand-500">
             |
           </Animated.Text>
         )}

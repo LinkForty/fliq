@@ -30,17 +30,17 @@ const STEPS = [
   {
     emoji: '\u{1FAF0}',
     title: 'Flick to Reveal',
-    body: 'Give your phone a quick flick to reveal messages \u2014 that\'s the Fliq way!\n\nYou can also scratch or tap to reveal. Choose a style each time you send.',
+    body: 'Give your phone a quick flick to reveal messages \u2014 that\'s the Fliq way!',
   },
   {
     emoji: '\u{1F514}',
     title: 'Push Delivery',
-    body: 'Send secrets directly to a phone number via push notification. No links, no chat history, no trace.\n\nMessages are deleted from the server the moment they\'re opened.',
+    body: 'Send secrets directly to a phone number via push notification. No links, no chat history, no trace.',
   },
   {
     emoji: '\u{1F512}',
     title: 'Your Privacy, Your Data',
-    body: 'Messages are stored only on your phone \u2014 never in a database.\n\nDelete them anytime. By default, messages vanish after you read them.',
+    body: 'Delete messages anytime. By default, messages vanish after you read them.',
   },
   {
     emoji: '\u{1F44B}',
@@ -143,7 +143,7 @@ export default function OnboardingScreen() {
               ) : (
                 <Pressable
                   onPress={handleEnablePush}
-                  className="w-full rounded-xl py-4 items-center bg-indigo-500 active:bg-indigo-600"
+                  className="w-full rounded-xl py-4 items-center bg-brand-500 active:bg-brand-600"
                 >
                   <Text className="text-white font-semibold text-base">
                     Enable Notifications
@@ -193,7 +193,7 @@ export default function OnboardingScreen() {
                 key={i}
                 className={`w-2.5 h-2.5 rounded-full mx-1.5 ${
                   i === step
-                    ? 'bg-indigo-500'
+                    ? 'bg-brand-500'
                     : 'bg-gray-300 dark:bg-gray-600'
                 }`}
               />
@@ -203,7 +203,7 @@ export default function OnboardingScreen() {
           {/* Button */}
           <Pressable
             onPress={handleNext}
-            className="w-full rounded-xl py-4 items-center bg-indigo-500 active:bg-indigo-600"
+            className="w-full rounded-xl py-4 items-center bg-brand-500 active:bg-brand-600"
           >
             <Text className="text-white font-semibold text-base">
               {isLastStep ? 'Get Started' : 'Next'}
