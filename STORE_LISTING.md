@@ -65,10 +65,10 @@ secret,message,flick,reveal,hidden,fun,privacy,share,anonymous,link
 - No ads
 
 ## Privacy Policy URL
-https://linkforty.com/fliq/privacy
+https://fliq.linkforty.com/privacy
 
 ## Terms of Service URL
-https://linkforty.com/fliq/terms
+https://fliq.linkforty.com/terms
 
 ## Support URL
 https://github.com/linkforty/fliq/issues

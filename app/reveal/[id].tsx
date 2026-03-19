@@ -61,7 +61,7 @@ export default function RevealScreen() {
         </Text>
         <Pressable
           onPress={() => router.back()}
-          className="mt-6 bg-indigo-500 rounded-xl px-6 py-3"
+          className="mt-6 bg-brand-500 rounded-xl px-6 py-3"
         >
           <Text className="text-white font-semibold">Go Back</Text>
         </Pressable>
@@ -133,7 +133,7 @@ export default function RevealScreen() {
         <View className="px-5 pb-10">
           <Pressable
             onPress={() => router.push('/create')}
-            className="bg-indigo-500 rounded-xl py-4 items-center active:bg-indigo-600"
+            className="bg-brand-500 rounded-xl py-4 items-center active:bg-brand-600"
           >
             <Text className="text-white font-semibold text-base">
               Send a Secret Back 🤫

@@ -71,7 +71,7 @@ export default function HomeScreen() {
       {/* FAB */}
       <Pressable
         onPress={() => router.push('/create')}
-        className="absolute bottom-6 right-6 w-14 h-14 rounded-full bg-indigo-500 items-center justify-center shadow-lg active:bg-indigo-600"
+        className="absolute bottom-6 right-6 w-14 h-14 rounded-full bg-brand-500 items-center justify-center shadow-lg active:bg-brand-600"
       >
         <Text className="text-white text-3xl font-light leading-none">+</Text>
       </Pressable>
@@ -139,7 +139,7 @@ function MessageCard({
                 {senderLabel}
               </Text>
               {!message.isRead && (
-                <View className="w-2 h-2 rounded-full bg-indigo-500 ml-2" />
+                <View className="w-2 h-2 rounded-full bg-brand-500 ml-2" />
               )}
             </View>
             <Text className="text-xs text-gray-400 dark:text-gray-500 mt-0.5">

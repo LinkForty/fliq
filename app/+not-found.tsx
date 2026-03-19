@@ -10,7 +10,7 @@ export default function NotFoundScreen() {
           This screen doesn't exist.
         </Text>
         <Link href="/" className="mt-4">
-          <Text className="text-indigo-500 text-base">Go to home screen</Text>
+          <Text className="text-brand-500 text-base">Go to home screen</Text>
         </Link>
       </View>
     </>

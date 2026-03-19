@@ -128,7 +128,7 @@ export default function SettingsScreen() {
             </Text>
           </View>
           <Text className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">
-            Phone Number
+            Your Phone Number
           </Text>
           <TextInput
             value={phoneNumber}
@@ -140,10 +140,10 @@ export default function SettingsScreen() {
           />
           <Pressable
             onPress={handleUpdatePhone}
-            className="rounded-xl py-3 items-center bg-indigo-500 active:bg-indigo-600"
+            className="rounded-xl py-3 items-center bg-brand-500 active:bg-brand-600"
           >
             <Text className="text-white font-semibold text-sm">
-              {pushRegistered ? 'Update Phone Number' : 'Enable Push Notifications'}
+              {pushRegistered ? 'Update Phone Number' : 'Save & Enable Push'}
             </Text>
           </Pressable>
         </View>
@@ -172,8 +172,8 @@ export default function SettingsScreen() {
                 const settings = await getSettings();
                 await saveSettings({ ...settings, autoDeleteAfterRead: value });
               }}
-              trackColor={{ false: '#d1d5db', true: '#818cf8' }}
-              thumbColor={autoDelete ? '#6366f1' : '#f3f4f6'}
+              trackColor={{ false: '#d1d5db', true: '#8ad4d5' }}
+              thumbColor={autoDelete ? '#26adae' : '#f3f4f6'}
             />
           </View>
           <View className="flex-row items-center justify-between p-4 rounded-xl bg-gray-50 dark:bg-gray-800 mt-3">
@@ -192,8 +192,8 @@ export default function SettingsScreen() {
                 const settings = await getSettings();
                 await saveSettings({ ...settings, autoDeleteAfterSend: value });
               }}
-              trackColor={{ false: '#d1d5db', true: '#818cf8' }}
-              thumbColor={autoDeleteSend ? '#6366f1' : '#f3f4f6'}
+              trackColor={{ false: '#d1d5db', true: '#8ad4d5' }}
+              thumbColor={autoDeleteSend ? '#26adae' : '#f3f4f6'}
             />
           </View>
         </View>
@@ -275,7 +275,7 @@ export default function SettingsScreen() {
               className={`rounded-xl py-4 items-center ${
                 loading
                   ? 'bg-gray-300 dark:bg-gray-700'
-                  : 'bg-indigo-500 active:bg-indigo-600'
+                  : 'bg-brand-500 active:bg-brand-600'
               }`}
             >
               <Text className="text-white font-semibold text-base">
@@ -291,14 +291,14 @@ export default function SettingsScreen() {
             Legal
           </Text>
           <Pressable
-            onPress={() => WebBrowser.openBrowserAsync('https://linkforty.com/fliq/privacy')}
+            onPress={() => WebBrowser.openBrowserAsync('https://fliq.linkforty.com/privacy')}
             className="flex-row items-center justify-between p-4 rounded-xl bg-gray-50 dark:bg-gray-800"
           >
             <Text className="font-semibold text-gray-900 dark:text-white">Privacy Policy</Text>
             <Text className="text-gray-400">&rsaquo;</Text>
           </Pressable>
           <Pressable
-            onPress={() => WebBrowser.openBrowserAsync('https://linkforty.com/fliq/terms')}
+            onPress={() => WebBrowser.openBrowserAsync('https://fliq.linkforty.com/terms')}
             className="flex-row items-center justify-between p-4 rounded-xl bg-gray-50 dark:bg-gray-800 mt-3"
           >
             <Text className="font-semibold text-gray-900 dark:text-white">Terms of Service</Text>
