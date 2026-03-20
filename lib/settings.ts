@@ -4,6 +4,8 @@ const SETTINGS_KEY = '@fliq/settings';
 const DEFAULT_BASE_URL = 'https://api.linkforty.com';
 const DEPRECATED_URL_PATTERNS = ['.up.railway.app', 'app.linkforty.com'];
 
+export type ThemePreference = 'dark' | 'light' | 'system';
+
 export type FliqSettings = {
   apiKey?: string;
   baseUrl: string;
@@ -13,6 +15,7 @@ export type FliqSettings = {
   phoneNumber?: string;
   pushRegistered?: boolean;
   onboardingComplete?: boolean;
+  theme?: ThemePreference;
 };
 
 export async function getSettings(): Promise<FliqSettings> {

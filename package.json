@@ -12,15 +12,19 @@
     "start": "expo start",
     "android": "expo start --android",
     "ios": "expo start --ios",
-    "web": "expo start --web"
+    "web": "expo start --web",
+    "test": "vitest run",
+    "test:watch": "vitest"
   },
   "dependencies": {
     "@linkforty/mobile-sdk-expo": "^1.1.0",
+    "@noble/ciphers": "^2.1.1",
     "@react-native-async-storage/async-storage": "2.2.0",
     "@react-navigation/native": "^7.1.28",
     "expo": "~55.0.5",
     "expo-blur": "~55.0.9",
     "expo-constants": "~55.0.7",
+    "expo-crypto": "^55.0.10",
     "expo-device": "~55.0.9",
     "expo-font": "~55.0.4",
     "expo-linking": "~55.0.7",
@@ -50,6 +54,7 @@
     "@semantic-release/github": "^12.0.6",
     "@types/react": "~19.2.2",
     "semantic-release": "^25.0.3",
-    "typescript": "~5.9.2"
+    "typescript": "~5.9.2",
+    "vitest": "^4.1.0"
   }
 }

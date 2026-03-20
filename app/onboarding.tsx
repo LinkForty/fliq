@@ -16,6 +16,7 @@ import Animated, {
 import { getSettings, saveSettings } from '@/lib/settings';
 import { trackEvent } from '@/lib/sdk';
 import { registerForPushNotifications, registerDevice } from '@/lib/push';
+import { useTheme } from '@/lib/theme';
 
 const PUSH_STEP = 2;
 const PROFILE_STEP = 4;
@@ -23,34 +24,35 @@ const TOTAL_STEPS = 5;
 
 const STEPS = [
   {
-    emoji: '\u{1F92B}',
-    title: 'Welcome to Fliq',
-    body: 'Send secret messages that only the recipient can reveal.',
+    emoji: '🤫',
+    title: 'Your secrets. Delivered.',
+    body: 'Send secret messages that only the recipient can reveal. No accounts, no trace, pure privacy.',
   },
   {
-    emoji: '\u{1FAF0}',
-    title: 'Flick to Reveal',
-    body: 'Give your phone a quick flick to reveal messages \u2014 that\'s the Fliq way!',
+    emoji: '🫰',
+    title: 'Flick to reveal',
+    body: "Give your phone a quick flick to unveil secret messages. It's the Fliq way — physical gestures for digital secrets.",
   },
   {
-    emoji: '\u{1F514}',
-    title: 'Push Delivery',
-    body: 'Send secrets directly to a phone number via push notification. No links, no chat history, no trace.',
+    emoji: '🔔',
+    title: 'Push to phone',
+    body: 'Send secrets directly to a phone number via push notification. No links, no chat history, no trace. Enable notifications to receive secrets too.',
   },
   {
-    emoji: '\u{1F512}',
-    title: 'Your Privacy, Your Data',
-    body: 'Delete messages anytime. By default, messages vanish after you read them.',
+    emoji: '🔒',
+    title: 'Ephemeral by design',
+    body: "Messages vanish after reading. Your secrets are encrypted end-to-end — not even Fliq can read them. Delete messages anytime, or let the app auto-delete.",
   },
   {
-    emoji: '\u{1F44B}',
-    title: 'Set Up Your Profile',
-    body: 'Enter your name and phone number to receive push secrets from friends.',
+    emoji: '👋',
+    title: 'Set up your profile',
+    body: 'Just a name and phone number so friends can send you secrets.',
   },
 ];
 
 export default function OnboardingScreen() {
   const router = useRouter();
+  const { colors } = useTheme();
   const [step, setStep] = useState(0);
   const [name, setName] = useState('');
   const [phone, setPhone] = useState('');
@@ -91,7 +93,6 @@ export default function OnboardingScreen() {
         onboardingComplete: true,
       });
 
-      // Register device with backend if push was enabled
       if (pushToken) {
         const registered = await registerDevice(phone.trim());
         if (registered) {
@@ -110,7 +111,8 @@ export default function OnboardingScreen() {
   return (
     <KeyboardAvoidingView
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-      className="flex-1 bg-white dark:bg-gray-900"
+      className="flex-1"
+      style={{ backgroundColor: colors.bg }}
     >
       <View className="flex-1 justify-between px-8 pt-24 pb-12">
         {/* Content */}
@@ -120,13 +122,34 @@ export default function OnboardingScreen() {
           exiting={SlideOutLeft.duration(200)}
           className="flex-1 justify-center items-center"
         >
-          <View className="w-24 h-24 items-center justify-center mb-6" style={{ overflow: 'visible' }}>
-            <Text style={{ fontSize: 72, lineHeight: 90 }}>{current.emoji}</Text>
+          <View
+            className="w-28 h-28 rounded-full items-center justify-center mb-8"
+            style={{
+              backgroundColor: colors.accentBg,
+              borderWidth: 1,
+              borderColor: colors.accentBorder,
+              ...(colors.isDark
+                ? {
+                    shadowColor: colors.accent,
+                    shadowOpacity: 0.3,
+                    shadowRadius: 30,
+                    shadowOffset: { width: 0, height: 0 },
+                  }
+                : {}),
+            }}
+          >
+            <Text style={{ fontSize: 56, lineHeight: 68 }}>{current.emoji}</Text>
           </View>
-          <Text className="text-3xl font-bold text-gray-900 dark:text-white text-center mb-4">
+          <Text
+            className="text-3xl font-extrabold text-center mb-4"
+            style={{ color: colors.textPrimary }}
+          >
             {current.title}
           </Text>
-          <Text className="text-base text-gray-500 dark:text-gray-400 text-center leading-relaxed px-4">
+          <Text
+            className="text-base text-center leading-relaxed px-4"
+            style={{ color: colors.textSecondary }}
+          >
             {current.body}
           </Text>
 
@@ -135,17 +158,36 @@ export default function OnboardingScreen() {
             <View className="w-full mt-8">
               {pushEnabled ? (
                 <View className="flex-row items-center justify-center py-3">
-                  <View className="w-3 h-3 rounded-full bg-green-500 mr-2" />
-                  <Text className="text-green-600 dark:text-green-400 font-semibold">
+                  <View
+                    className="w-3 h-3 rounded-full mr-2"
+                    style={{ backgroundColor: colors.accent }}
+                  />
+                  <Text style={{ color: colors.accent }} className="font-semibold">
                     Notifications enabled
                   </Text>
                 </View>
               ) : (
                 <Pressable
                   onPress={handleEnablePush}
-                  className="w-full rounded-xl py-4 items-center bg-brand-500 active:bg-brand-600"
+                  className="w-full rounded-xl py-4 items-center active:opacity-80"
+                  style={
+                    colors.isDark
+                      ? {
+                          ...colors.bgCard,
+                          borderWidth: 1,
+                          borderColor: colors.accentBorder,
+                        }
+                      : {
+                          backgroundColor: colors.accent,
+                        }
+                  }
                 >
-                  <Text className="text-white font-semibold text-base">
+                  <Text
+                    className="font-semibold text-base"
+                    style={{
+                      color: colors.isDark ? colors.accent : colors.accentText,
+                    }}
+                  >
                     Enable Notifications
                   </Text>
                 </Pressable>
@@ -160,25 +202,40 @@ export default function OnboardingScreen() {
                 ref={nameInputRef}
                 value={name}
                 onChangeText={setName}
-                placeholder="Your name"
-                placeholderTextColor="#9ca3af"
+                placeholder="Enter your name"
+                placeholderTextColor={colors.inputPlaceholder}
                 autoFocus
                 autoCapitalize="words"
                 returnKeyType="next"
-                className="w-full bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl px-4 py-3.5 text-gray-900 dark:text-white text-lg text-center"
+                className="w-full rounded-xl px-4 py-3.5 text-lg text-center"
+                style={{
+                  ...colors.bgInput,
+                  borderWidth: 1,
+                  borderColor: colors.inputBorder,
+                  color: colors.textPrimary,
+                }}
               />
               <TextInput
                 value={phone}
                 onChangeText={setPhone}
-                placeholder="Phone number"
-                placeholderTextColor="#9ca3af"
+                placeholder="Your phone number"
+                placeholderTextColor={colors.inputPlaceholder}
                 keyboardType="phone-pad"
                 returnKeyType="done"
                 onSubmitEditing={handleNext}
-                className="w-full mt-3 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl px-4 py-3.5 text-gray-900 dark:text-white text-lg text-center"
+                className="w-full mt-3 rounded-xl px-4 py-3.5 text-lg text-center"
+                style={{
+                  ...colors.bgInput,
+                  borderWidth: 1,
+                  borderColor: colors.inputBorder,
+                  color: colors.textPrimary,
+                }}
               />
-              <Text className="text-xs text-gray-400 dark:text-gray-500 text-center mt-2">
-                Your phone number is only used to receive push secrets
+              <Text
+                className="text-xs text-center mt-2"
+                style={{ color: colors.textTertiary }}
+              >
+                Your phone number is used to receive push notifications only
               </Text>
             </View>
           )}
@@ -191,11 +248,15 @@ export default function OnboardingScreen() {
             {Array.from({ length: TOTAL_STEPS }, (_, i) => (
               <View
                 key={i}
-                className={`w-2.5 h-2.5 rounded-full mx-1.5 ${
-                  i === step
-                    ? 'bg-brand-500'
-                    : 'bg-gray-300 dark:bg-gray-600'
-                }`}
+                className="w-2.5 h-2.5 rounded-full mx-1.5"
+                style={{
+                  backgroundColor:
+                    i === step
+                      ? colors.accent
+                      : colors.isDark
+                        ? '#334155'
+                        : '#d1d5db',
+                }}
               />
             ))}
           </View>
@@ -203,9 +264,23 @@ export default function OnboardingScreen() {
           {/* Button */}
           <Pressable
             onPress={handleNext}
-            className="w-full rounded-xl py-4 items-center bg-brand-500 active:bg-brand-600"
+            className="w-full rounded-xl py-4 items-center active:opacity-80"
+            style={{
+              backgroundColor: colors.accent,
+              ...(colors.isDark
+                ? {
+                    shadowColor: colors.accent,
+                    shadowOpacity: 0.3,
+                    shadowRadius: 12,
+                    shadowOffset: { width: 0, height: 4 },
+                  }
+                : {}),
+            }}
           >
-            <Text className="text-white font-semibold text-base">
+            <Text
+              className="font-bold text-base"
+              style={{ color: colors.accentText }}
+            >
               {isLastStep ? 'Get Started' : 'Next'}
             </Text>
           </Pressable>

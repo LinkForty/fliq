@@ -1,19 +1,21 @@
 import '../global.css';
 
-import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native';
+import { DarkTheme, DefaultTheme, ThemeProvider as NavThemeProvider } from '@react-navigation/native';
 import { useFonts } from 'expo-font';
 import { Stack, useRouter } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import * as Notifications from 'expo-notifications';
 import { type EventSubscription } from 'expo-modules-core';
 import { useEffect, useRef } from 'react';
-import { Pressable, Text, useColorScheme } from 'react-native';
+import { Pressable, Text } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
+import * as Linking from 'expo-linking';
 import { initializeSDK, onDeepLink, onDeferredDeepLink, trackEvent } from '@/lib/sdk';
-import { handleSDKDeepLink } from '@/lib/deep-link-router';
+import { handleSDKDeepLink, handleSchemeDeepLink } from '@/lib/deep-link-router';
 import { isOnboardingComplete } from '@/lib/settings';
 import { fetchPushMessage } from '@/lib/push';
 import { saveMessage } from '@/lib/storage';
+import { ThemeProvider, useTheme } from '@/lib/theme';
 import type { Message, RevealStyle } from '@/lib/types';
 
 export { ErrorBoundary } from 'expo-router';
@@ -30,8 +32,69 @@ Notifications.setNotificationHandler({
 
 SplashScreen.preventAutoHideAsync();
 
+function AppNavigator() {
+  const router = useRouter();
+  const { colors } = useTheme();
+
+  const FliqNavTheme = colors.isDark
+    ? {
+        ...DarkTheme,
+        colors: {
+          ...DarkTheme.colors,
+          primary: colors.accent,
+          background: colors.bg,
+          card: colors.bg,
+          text: colors.textPrimary,
+          border: colors.sectionBorder,
+          notification: colors.accent,
+        },
+      }
+    : {
+        ...DefaultTheme,
+        colors: {
+          ...DefaultTheme.colors,
+          primary: colors.accent,
+          background: colors.bg,
+          card: colors.bg,
+          text: colors.textPrimary,
+          border: colors.sectionBorder,
+          notification: colors.accent,
+        },
+      };
+
+  return (
+    <NavThemeProvider value={FliqNavTheme}>
+      <Stack
+        screenOptions={{
+          headerStyle: { backgroundColor: colors.headerBg },
+          headerTintColor: colors.headerTint,
+          headerTitleStyle: { fontWeight: '700' },
+          headerShadowVisible: false,
+          contentStyle: { backgroundColor: colors.bg },
+        }}
+      >
+        <Stack.Screen
+          name="(tabs)"
+          options={{
+            title: 'Fliq',
+            headerRight: () => (
+              <Pressable onPress={() => router.push('/settings')} hitSlop={8}>
+                <Text style={{ fontSize: 22, color: colors.textSecondary }}>{'\u2699'}</Text>
+              </Pressable>
+            ),
+          }}
+        />
+        <Stack.Screen name="onboarding" options={{ headerShown: false, gestureEnabled: false }} />
+        <Stack.Screen name="create" options={{ title: 'New Secret' }} />
+        <Stack.Screen name="reveal/[id]" options={{ title: '', headerBackTitle: 'Back', headerTransparent: true }} />
+        <Stack.Screen name="s" options={{ headerShown: false }} />
+        <Stack.Screen name="settings" options={{ title: 'Settings', headerBackTitle: 'Back' }} />
+      </Stack>
+    </NavThemeProvider>
+  );
+}
+
 export default function RootLayout() {
-  const colorScheme = useColorScheme();
   const router = useRouter();
   const notificationResponseListener = useRef<EventSubscription | null>(null);
   const [loaded, error] = useFonts({
@@ -60,9 +123,26 @@ export default function RootLayout() {
       initializeSDK().then((connected) => {
         if (connected) {
           trackEvent('app_opened');
-          onDeepLink((_url, data) => handleSDKDeepLink(data));
+          onDeepLink((url, data) => handleSDKDeepLink(data, url));
           onDeferredDeepLink((data) => handleSDKDeepLink(data));
         }
+
+        // Handle fliq:// URI scheme deep links (from interstitial page).
+        // These bypass the SDK since the URL doesn't match the SDK's baseUrl.
+        const subscription = Linking.addEventListener('url', ({ url }) => {
+          if (url.startsWith('fliq://open')) {
+            handleSchemeDeepLink(url);
+          }
+        });
+
+        // Check if app was cold-launched via fliq:// scheme
+        Linking.getInitialURL().then((initialUrl) => {
+          if (initialUrl?.startsWith('fliq://open')) {
+            handleSchemeDeepLink(initialUrl);
+          }
+        });
+
+        return () => subscription.remove();
       });
     }
   }, [loaded]);
@@ -73,7 +153,10 @@ export default function RootLayout() {
       Notifications.addNotificationResponseReceivedListener(async (response) => {
         const data = response.notification.request.content.data;
         if (data?.type === 'fliq_message' && data?.messageId) {
-          const msg = await fetchPushMessage(data.messageId as string);
+          const msg = await fetchPushMessage(
+            data.messageId as string,
+            data.contentKey as string | undefined,
+          );
           if (msg) {
             const id = Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
             const message: Message = {
@@ -110,25 +193,8 @@ export default function RootLayout() {
 
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
-      <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-        <Stack>
-          <Stack.Screen
-            name="(tabs)"
-            options={{
-              title: 'Fliq',
-              headerRight: () => (
-                <Pressable onPress={() => router.push('/settings')} className="px-2">
-                  <Text className="text-2xl">{'\u2699\uFE0F'}</Text>
-                </Pressable>
-              ),
-            }}
-          />
-          <Stack.Screen name="onboarding" options={{ headerShown: false, gestureEnabled: false }} />
-          <Stack.Screen name="create" options={{ title: 'Create Secret' }} />
-          <Stack.Screen name="reveal/[id]" options={{ title: '', headerBackTitle: 'Back', headerTransparent: true }} />
-          <Stack.Screen name="s" options={{ headerShown: false }} />
-          <Stack.Screen name="settings" options={{ title: 'Settings', headerBackTitle: 'Back' }} />
-        </Stack>
+      <ThemeProvider>
+        <AppNavigator />
       </ThemeProvider>
     </GestureHandlerRootView>
   );

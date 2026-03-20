@@ -10,11 +10,13 @@ import { BlurReveal } from '@/components/BlurReveal';
 import { FlickReveal } from '@/components/FlickReveal';
 import { TypewriterReveal } from '@/components/TypewriterReveal';
 import { FlipReveal } from '@/components/FlipReveal';
+import { useTheme } from '@/lib/theme';
 import type { Message, RevealStyle } from '@/lib/types';
 
 export default function RevealScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
+  const { colors } = useTheme();
   const [message, setMessage] = useState<Message | null>(null);
   const [revealed, setRevealed] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -54,16 +56,23 @@ export default function RevealScreen() {
 
   if (error) {
     return (
-      <View className="flex-1 items-center justify-center bg-white dark:bg-gray-900 p-8">
+      <View
+        className="flex-1 items-center justify-center p-8"
+        style={{ backgroundColor: colors.bg }}
+      >
         <Text className="text-5xl mb-4">😵</Text>
-        <Text className="text-xl font-bold text-gray-900 dark:text-white text-center">
+        <Text
+          className="text-xl font-bold text-center"
+          style={{ color: colors.textPrimary }}
+        >
           {error}
         </Text>
         <Pressable
           onPress={() => router.back()}
-          className="mt-6 bg-brand-500 rounded-xl px-6 py-3"
+          className="mt-6 rounded-xl px-6 py-3"
+          style={{ backgroundColor: colors.accent }}
         >
-          <Text className="text-white font-semibold">Go Back</Text>
+          <Text className="font-bold" style={{ color: colors.accentText }}>Go Back</Text>
         </Pressable>
       </View>
     );
@@ -71,8 +80,11 @@ export default function RevealScreen() {
 
   if (!message) {
     return (
-      <View className="flex-1 items-center justify-center bg-white dark:bg-gray-900">
-        <Text className="text-gray-500">Loading...</Text>
+      <View
+        className="flex-1 items-center justify-center"
+        style={{ backgroundColor: colors.bg }}
+      >
+        <Text style={{ color: colors.textTertiary }}>Loading...</Text>
       </View>
     );
   }
@@ -82,17 +94,23 @@ export default function RevealScreen() {
     message.revealStyle in REVEAL_STYLES ? message.revealStyle : 'blur';
 
   return (
-    <View className="flex-1 bg-white dark:bg-gray-900">
+    <View className="flex-1" style={{ backgroundColor: colors.bg }}>
       {/* Header */}
       <View className="pt-16 pb-4 px-5 items-center">
-        <Text className="text-lg text-gray-500 dark:text-gray-400">
+        <Text className="text-lg" style={{ color: colors.textSecondary }}>
           Secret from
         </Text>
-        <Text className="text-2xl font-bold text-gray-900 dark:text-white">
+        <Text
+          className="text-2xl font-extrabold"
+          style={{ color: colors.textPrimary }}
+        >
           {message.senderName}
         </Text>
         {!revealed && (
-          <Text className="text-sm text-gray-400 dark:text-gray-500 mt-1">
+          <Text
+            className="text-sm mt-1"
+            style={{ color: colors.textTertiary }}
+          >
             {style.description}
           </Text>
         )}
@@ -133,17 +151,33 @@ export default function RevealScreen() {
         <View className="px-5 pb-10">
           <Pressable
             onPress={() => router.push('/create')}
-            className="bg-brand-500 rounded-xl py-4 items-center active:bg-brand-600"
+            className="rounded-xl py-4 items-center active:opacity-80"
+            style={
+              colors.isDark
+                ? {
+                    ...colors.bgCard,
+                    borderWidth: 1,
+                    borderColor: colors.accentBorder,
+                  }
+                : {
+                    backgroundColor: colors.accent,
+                  }
+            }
           >
-            <Text className="text-white font-semibold text-base">
-              Send a Secret Back 🤫
+            <Text
+              className="font-semibold text-base"
+              style={{
+                color: colors.isDark ? colors.accent : colors.accentText,
+              }}
+            >
+              Send a Secret Back
             </Text>
           </Pressable>
           <Pressable
             onPress={() => router.back()}
             className="mt-3 py-3 items-center"
           >
-            <Text className="text-gray-500 dark:text-gray-400 text-sm">
+            <Text className="text-sm" style={{ color: colors.textTertiary }}>
               Go back
             </Text>
           </Pressable>

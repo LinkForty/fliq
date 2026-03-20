@@ -3,6 +3,7 @@ import type { DeepLinkData } from '@linkforty/mobile-sdk-expo';
 import { getSettings } from './settings';
 import { generateShareUrl } from './deeplink';
 import type { MessagePayload } from './deeplink';
+import { generateKey, encrypt } from './crypto';
 
 /**
  * Initialize the LinkForty SDK if an API key is configured.
@@ -44,15 +45,26 @@ export async function createShareLink(payload: MessagePayload): Promise<string> 
   }
 
   try {
+    // Encrypt the message client-side — server only ever sees ciphertext
+    const key = generateKey();
+    const plaintext = JSON.stringify({
+      content: payload.content,
+      revealStyle: payload.revealStyle,
+      senderName: payload.senderName,
+    });
+    const encrypted = encrypt(plaintext, key);
+
     const result = await LinkFortySDK.createLink({
       deepLinkParameters: {
-        content: payload.content,
-        revealStyle: payload.revealStyle,
-        senderName: payload.senderName,
+        e: encrypted.e,
+        n: encrypted.n,
+        v: String(encrypted.v),
       },
       title: `Secret from ${payload.senderName}`,
     });
-    return result.url;
+
+    // Append decryption key as URL fragment — never sent to server
+    return `${result.url}#${key}`;
   } catch (error) {
     console.warn('[Fliq] createLink failed, falling back to standalone URL:', error);
     return generateShareUrl(payload);

@@ -7,6 +7,29 @@
     @apply scroll-smooth;
   }
   body {
-    @apply bg-white text-gray-900 antialiased;
+    @apply bg-background-dark text-slate-100 antialiased;
+  }
+  ::selection {
+    @apply bg-primary/30;
+  }
+}
+
+@layer components {
+  .glass {
+    background: rgba(255, 255, 255, 0.07);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid rgba(57, 255, 20, 0.15);
+    box-shadow: 0 0 15px rgba(57, 255, 20, 0.05);
+  }
+  .glass-glow {
+    @apply transition-all;
+  }
+  .glass-glow:hover {
+    box-shadow: 0 0 25px rgba(57, 255, 20, 0.15);
+    border: 1px solid rgba(57, 255, 20, 0.4);
+  }
+  .hero-glow {
+    background: radial-gradient(circle at center, rgba(57, 255, 20, 0.1) 0%, transparent 70%);
   }
 }

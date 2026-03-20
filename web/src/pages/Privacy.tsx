@@ -7,12 +7,12 @@ export function Privacy() {
       <Header />
       <main className="pt-24 pb-16 px-6">
         <article className="max-w-3xl mx-auto">
-          <h1 className="text-3xl font-bold text-navy mb-2">Privacy Policy</h1>
-          <p className="text-gray-400 text-sm mb-10">Effective March 18, 2026</p>
+          <h1 className="text-3xl font-bold text-white mb-2">Privacy Policy</h1>
+          <p className="text-slate-500 text-sm mb-10">Effective March 18, 2026</p>
 
-          <div className="space-y-8 text-gray-700 leading-relaxed">
+          <div className="space-y-8 text-slate-300 leading-relaxed">
             <section>
-              <h2 className="text-xl font-bold text-navy mb-3">Overview</h2>
+              <h2 className="text-xl font-bold text-white mb-3">Overview</h2>
               <p>
                 Fliq is a secret message app built by SiteTransition LLC. We are committed to
                 protecting your privacy. This policy explains what data we collect, how we use it,
@@ -21,7 +21,18 @@ export function Privacy() {
             </section>
 
             <section>
-              <h2 className="text-xl font-bold text-navy mb-3">Device Registration</h2>
+              <h2 className="text-xl font-bold text-white mb-3">Encryption</h2>
+              <p>
+                All messages are encrypted on the sender's device using AES-256-GCM before
+                leaving their phone. The decryption key is never transmitted to or stored on
+                our servers — it exists only in the shareable link or push notification
+                delivered to the recipient. This means Fliq operates on a zero-knowledge
+                basis: we cannot read your messages, even if compelled to.
+              </p>
+            </section>
+
+            <section>
+              <h2 className="text-xl font-bold text-white mb-3">Device Registration</h2>
               <p>
                 When you enable push notifications, we store the following on our server:
               </p>
@@ -38,15 +49,19 @@ export function Privacy() {
             </section>
 
             <section>
-              <h2 className="text-xl font-bold text-navy mb-3">Message Storage</h2>
+              <h2 className="text-xl font-bold text-white mb-3">Message Storage</h2>
               <p>
                 <strong>Push messages:</strong> When someone sends you a secret via push notification,
-                the message content is temporarily stored on our server. It is permanently deleted the
-                moment you open it, or automatically after 24 hours — whichever comes first.
+                the message content is encrypted on the sender's device before it reaches our server.
+                We only store ciphertext we cannot read. It is permanently deleted the moment you open
+                it, or automatically after 24 hours — whichever comes first.
               </p>
               <p className="mt-2">
-                <strong>Link-based messages:</strong> Messages shared via link are encoded directly
-                in the URL. They are never sent to or stored on our server.
+                <strong>Link-based messages:</strong> Messages shared via link are encrypted on the
+                sender's device. The decryption key is embedded in the link itself and never sent
+                to our servers. When the LinkForty SDK is connected, encrypted message data is
+                stored temporarily on our servers and deleted after delivery. Without the SDK,
+                encrypted data is encoded entirely within the URL and never touches our servers.
               </p>
               <p className="mt-2">
                 <strong>On your device:</strong> Messages are stored locally on your phone using
@@ -57,7 +72,7 @@ export function Privacy() {
             </section>
 
             <section>
-              <h2 className="text-xl font-bold text-navy mb-3">Analytics</h2>
+              <h2 className="text-xl font-bold text-white mb-3">Analytics</h2>
               <p>
                 Fliq optionally integrates with the LinkForty SDK for analytics. This integration
                 is opt-in — you must manually connect it from the Settings screen by providing
@@ -72,7 +87,7 @@ export function Privacy() {
             </section>
 
             <section>
-              <h2 className="text-xl font-bold text-navy mb-3">Data Sharing</h2>
+              <h2 className="text-xl font-bold text-white mb-3">Data Sharing</h2>
               <p>
                 We do not sell, rent, or share your personal information with third parties.
                 We do not serve advertisements.
@@ -80,22 +95,22 @@ export function Privacy() {
             </section>
 
             <section>
-              <h2 className="text-xl font-bold text-navy mb-3">Data Deletion</h2>
+              <h2 className="text-xl font-bold text-white mb-3">Data Deletion</h2>
               <p>
                 You can delete all local messages and reset the app at any time from the
                 Settings screen. To request deletion of your device registration from our server,
                 contact us at{' '}
-                <a href="mailto:support@linkforty.com" className="text-brand-500 hover:underline">
+                <a href="mailto:support@linkforty.com" className="text-primary hover:underline">
                   support@linkforty.com
                 </a>.
               </p>
             </section>
 
             <section>
-              <h2 className="text-xl font-bold text-navy mb-3">Contact</h2>
+              <h2 className="text-xl font-bold text-white mb-3">Contact</h2>
               <p>
                 If you have questions about this privacy policy, contact us at{' '}
-                <a href="mailto:support@linkforty.com" className="text-brand-500 hover:underline">
+                <a href="mailto:support@linkforty.com" className="text-primary hover:underline">
                   support@linkforty.com
                 </a>.
               </p>

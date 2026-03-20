@@ -7,6 +7,7 @@ import Animated, {
   withSequence,
   withTiming,
 } from 'react-native-reanimated';
+import { useTheme } from '@/lib/theme';
 
 type Props = {
   content: string;
@@ -16,6 +17,7 @@ type Props = {
 const CHAR_DELAY = 45; // ms per character
 
 export function TypewriterReveal({ content, onRevealed }: Props) {
+  const { colors } = useTheme();
   const [started, setStarted] = useState(false);
   const [visibleCount, setVisibleCount] = useState(0);
   const hasRevealed = useRef(false);
@@ -59,12 +61,33 @@ export function TypewriterReveal({ content, onRevealed }: Props) {
   if (!started) {
     return (
       <Pressable onPress={() => setStarted(true)} className="flex-1">
-        <View className="flex-1 rounded-2xl bg-gray-100 dark:bg-gray-800 overflow-hidden items-center justify-center p-8">
+        <View
+          className="flex-1 rounded-2xl overflow-hidden items-center justify-center p-8"
+          style={
+            colors.isDark
+              ? {
+                  ...colors.revealCoverBg,
+                  borderWidth: 1,
+                  borderColor: colors.revealCoverBorder,
+                }
+              : {
+                  ...colors.bgCard,
+                  borderWidth: 1,
+                  borderColor: colors.cardBorder,
+                }
+          }
+        >
           <Text className="text-6xl mb-4">⌨️</Text>
-          <Text className="text-lg font-semibold text-gray-700 dark:text-gray-300 text-center">
+          <Text
+            className="text-lg font-bold text-center"
+            style={{ color: colors.isDark ? colors.accent : colors.textPrimary }}
+          >
             Tap to start typing
           </Text>
-          <Text className="text-sm text-gray-400 dark:text-gray-500 mt-2 text-center">
+          <Text
+            className="text-sm mt-2 text-center"
+            style={{ color: colors.textSecondary }}
+          >
             Watch the secret message type itself out
           </Text>
         </View>
@@ -75,11 +98,21 @@ export function TypewriterReveal({ content, onRevealed }: Props) {
   const done = visibleCount >= content.length;
 
   return (
-    <View className="flex-1 rounded-2xl bg-gray-100 dark:bg-gray-800 overflow-hidden items-center justify-center p-8">
-      <Text className="text-xl text-gray-900 dark:text-white text-center leading-relaxed">
+    <View
+      className="flex-1 rounded-2xl overflow-hidden items-center justify-center p-8"
+      style={{
+        ...colors.bgCard,
+        borderWidth: 1,
+        borderColor: colors.cardBorder,
+      }}
+    >
+      <Text
+        className="text-xl text-center leading-relaxed"
+        style={{ color: colors.textPrimary }}
+      >
         {content.slice(0, visibleCount)}
         {!done && (
-          <Animated.Text style={cursorStyle} className="text-brand-500">
+          <Animated.Text style={[cursorStyle, { color: colors.accent }]}>
             |
           </Animated.Text>
         )}
