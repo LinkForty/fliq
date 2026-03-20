@@ -1,3 +1,10 @@
+# [1.2.0](https://github.com/linkforty/fliq/compare/v1.1.0...v1.2.0) (2026-03-20)
+
+
+### Features
+
+* redesign website and mobile app with dark theme, E2E encryption, and theme toggle ([3de8df2](https://github.com/linkforty/fliq/commit/3de8df2960c329a1a05b45a6d8a31e6f298efd18)), closes [#050507](https://github.com/linkforty/fliq/issues/050507) [#39FF14](https://github.com/linkforty/fliq/issues/39FF14)
+
 # [1.1.0](https://github.com/linkforty/fliq/compare/v1.0.1...v1.1.0) (2026-03-19)
 
 
