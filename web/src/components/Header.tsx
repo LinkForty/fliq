@@ -1,19 +1,36 @@
 import { Link } from 'react-router-dom';
+import { APP_STORE_URL, PLAY_STORE_URL } from '../constants';
+
+function getStoreUrl(): string {
+  const ua = navigator.userAgent || '';
+  if (/iPhone|iPad|iPod|Macintosh/i.test(ua)) return APP_STORE_URL;
+  return PLAY_STORE_URL;
+}
 
 export function Header() {
   return (
-    <header className="fixed top-0 left-0 right-0 z-50 bg-navy/95 backdrop-blur-sm border-b border-white/10">
-      <div className="max-w-5xl mx-auto px-6 h-16 flex items-center justify-between">
-        <Link to="/" className="text-white font-bold text-xl tracking-tight">
-          Fliq
+    <nav className="fixed top-0 w-full z-50 border-b border-white/5 bg-background-dark/80 backdrop-blur-md">
+      <div className="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
+        <Link to="/" className="flex items-center gap-3">
+          <div className="size-8 bg-primary rounded-lg flex items-center justify-center shadow-lg shadow-primary/40">
+            <span className="material-symbols-outlined text-black text-xl font-bold">vibration</span>
+          </div>
+          <span className="text-2xl font-bold tracking-tight text-white">Fliq</span>
         </Link>
-        <a
-          href="#download"
-          className="bg-brand-500 hover:bg-brand-600 text-white text-sm font-semibold px-5 py-2 rounded-lg transition-colors"
-        >
-          Download
-        </a>
+        <div className="hidden md:flex items-center gap-10">
+          <a className="text-sm font-medium text-slate-400 hover:text-primary transition-colors" href="#features">Features</a>
+          <a className="text-sm font-medium text-slate-400 hover:text-primary transition-colors" href="#how-it-works">How it Works</a>
+          <Link className="text-sm font-medium text-slate-400 hover:text-primary transition-colors" to="/privacy">Privacy</Link>
+          <a
+            href={getStoreUrl()}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="bg-primary hover:brightness-110 text-black px-6 py-2.5 rounded-full text-sm font-bold transition-all shadow-lg shadow-primary/25"
+          >
+            Download
+          </a>
+        </div>
       </div>
-    </header>
+    </nav>
   );
 }

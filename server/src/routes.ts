@@ -21,9 +21,17 @@ const sendMessageSchema = z.object({
   senderDeviceId: z.string().min(1).max(64),
   senderName: z.string().min(1).max(100),
   recipientPhone: z.string().min(5).max(20),
-  content: z.string().min(1).max(2000),
+  // Encrypted content fields (v2)
+  encryptedContent: z.string().min(1).max(4000).optional(),
+  contentNonce: z.string().min(1).max(100).optional(),
+  contentKey: z.string().min(1).max(100).optional(),
+  // Legacy plaintext (v1) — still accepted for backwards compatibility
+  content: z.string().min(1).max(2000).optional(),
   revealStyle: z.enum(['flick', 'scratch', 'blur', 'typewriter', 'flip']).default('flick'),
-});
+}).refine(
+  (data) => data.encryptedContent || data.content,
+  { message: 'Either encryptedContent or content must be provided' },
+);
 
 // ── Routes ─────────────────────────────────────────────────────────────
 
@@ -76,18 +84,21 @@ export async function registerRoutes(fastify: FastifyInstance) {
 
     const recipient = deviceResult.rows[0];
 
-    // Store message with TTL
+    // Store message with TTL — server stores encrypted content, never plaintext
     const expiresAt = new Date(Date.now() + MESSAGE_TTL_HOURS * 60 * 60 * 1000);
+    const storedContent = data.encryptedContent || data.content;
     const msgResult = await db.query(
-      `INSERT INTO messages (sender_device_id, sender_name, recipient_phone, content, reveal_style, expires_at)
-       VALUES ($1, $2, $3, $4, $5, $6)
+      `INSERT INTO messages (sender_device_id, sender_name, recipient_phone, content, reveal_style, expires_at, content_nonce)
+       VALUES ($1, $2, $3, $4, $5, $6, $7)
        RETURNING id`,
-      [data.senderDeviceId, data.senderName, data.recipientPhone, data.content, data.revealStyle, expiresAt],
+      [data.senderDeviceId, data.senderName, data.recipientPhone, storedContent, data.revealStyle, expiresAt, data.contentNonce || null],
     );
 
     const messageId = msgResult.rows[0].id;
 
     // Send push notification via Expo
+    // The encryption key is included in the notification data so the
+    // recipient app can decrypt the message after fetching it.
     const pushToken = recipient.push_token;
     if (Expo.isExpoPushToken(pushToken)) {
       try {
@@ -96,7 +107,11 @@ export async function registerRoutes(fastify: FastifyInstance) {
           sound: 'default',
           title: 'New secret message',
           body: `${data.senderName} sent you a secret`,
-          data: { messageId, type: 'fliq_message' },
+          data: {
+            messageId,
+            type: 'fliq_message',
+            ...(data.contentKey ? { contentKey: data.contentKey } : {}),
+          },
         }]);
       } catch (err) {
         fastify.log.error(err, 'Failed to send push notification');
@@ -123,7 +138,7 @@ export async function registerRoutes(fastify: FastifyInstance) {
       `UPDATE messages
        SET fetched_at = NOW()
        WHERE id = $1 AND fetched_at IS NULL AND expires_at > NOW()
-       RETURNING sender_name, content, reveal_style, created_at`,
+       RETURNING sender_name, content, content_nonce, reveal_style, created_at`,
       [id],
     );
 
@@ -139,6 +154,18 @@ export async function registerRoutes(fastify: FastifyInstance) {
     // Delete immediately — no trace on server
     await db.query('DELETE FROM messages WHERE id = $1', [id]);
 
+    // If content_nonce is present, the content is encrypted
+    if (msg.content_nonce) {
+      return reply.send({
+        senderName: msg.sender_name,
+        encryptedContent: msg.content,
+        contentNonce: msg.content_nonce,
+        revealStyle: msg.reveal_style,
+        createdAt: msg.created_at,
+      });
+    }
+
+    // Legacy plaintext message
     return reply.send({
       senderName: msg.sender_name,
       content: msg.content,

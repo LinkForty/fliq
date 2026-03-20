@@ -17,6 +17,7 @@ import { isPayloadTooLarge } from '@/lib/deeplink';
 import { createShareLink, isConnected, trackEvent } from '@/lib/sdk';
 import { sendPushMessage } from '@/lib/push';
 import { REVEAL_STYLES } from '@/lib/reveal-styles';
+import { useTheme } from '@/lib/theme';
 import type { RevealStyle, Message } from '@/lib/types';
 
 const MAX_CONTENT_LENGTH = 500;
@@ -25,6 +26,7 @@ const AVAILABLE_STYLES: RevealStyle[] = ['flick'];
 type SendMode = 'link' | 'push';
 
 export default function CreateScreen() {
+  const { colors } = useTheme();
   const [content, setContent] = useState('');
   const [senderName, setSenderName] = useState('');
   const [revealStyle, setRevealStyle] = useState<RevealStyle>('flick');
@@ -66,6 +68,7 @@ export default function CreateScreen() {
         error instanceof Error &&
         error.message !== 'User did not share'
       ) {
+        if (__DEV__) console.error('[Fliq] handleShare error:', error);
         Alert.alert('Error', 'Failed to send. Please try again.');
       }
     } finally {
@@ -103,7 +106,6 @@ export default function CreateScreen() {
       mode: 'push',
     });
 
-    // Save locally if auto-delete-after-send is off
     const settings = await getSettings();
     if (!settings.autoDeleteAfterSend) {
       const message: Message = {
@@ -124,7 +126,6 @@ export default function CreateScreen() {
   }
 
   async function handleLinkShare(payload: { content: string; revealStyle: RevealStyle; senderName: string }) {
-    // Only check payload size in standalone mode
     if (!isConnected() && isPayloadTooLarge(payload)) {
       Alert.alert(
         'Message too long',
@@ -167,39 +168,56 @@ export default function CreateScreen() {
     router.back();
   }
 
+  const isEnabled = canShare && !sharing;
+
   return (
     <KeyboardAvoidingView
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
       style={{ flex: 1 }}
     >
       <ScrollView
-        style={{ flex: 1, backgroundColor: '#fff' }}
+        className="flex-1"
+        style={{ backgroundColor: colors.bg }}
         contentContainerStyle={{ padding: 20 }}
         keyboardShouldPersistTaps="handled"
       >
         {/* From name */}
-        <Text className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">
+        <Text
+          className="text-xs font-bold uppercase tracking-widest mb-2"
+          style={{ color: colors.textSecondary }}
+        >
           From
         </Text>
         <TextInput
           value={senderName}
           onChangeText={setSenderName}
           placeholder="Your name"
-          placeholderTextColor="#9ca3af"
-          className="bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl px-4 py-3 text-gray-900 dark:text-white text-base mb-5"
+          placeholderTextColor={colors.inputPlaceholder}
+          className="rounded-xl px-4 py-3 text-base mb-5"
+          style={{
+            ...colors.bgInput,
+            borderWidth: 1,
+            borderColor: colors.inputBorder,
+            color: colors.textPrimary,
+          }}
         />
 
         {/* Secret message */}
-        <View className="flex-row justify-between items-baseline mb-1.5">
-          <Text className="text-sm font-medium text-gray-700 dark:text-gray-300">
+        <View className="flex-row justify-between items-baseline mb-2">
+          <Text
+            className="text-xs font-bold uppercase tracking-widest"
+            style={{ color: colors.textSecondary }}
+          >
             Your secret
           </Text>
           <Text
-            className={`text-xs ${
-              content.length > MAX_CONTENT_LENGTH
-                ? 'text-red-500'
-                : 'text-gray-400'
-            }`}
+            className="text-xs"
+            style={{
+              color:
+                content.length > MAX_CONTENT_LENGTH
+                  ? '#ef4444'
+                  : colors.textTertiary,
+            }}
           >
             {content.length}/{MAX_CONTENT_LENGTH}
           </Text>
@@ -208,15 +226,24 @@ export default function CreateScreen() {
           value={content}
           onChangeText={setContent}
           placeholder="Type your secret message..."
-          placeholderTextColor="#9ca3af"
+          placeholderTextColor={colors.inputPlaceholder}
           multiline
           numberOfLines={6}
           textAlignVertical="top"
-          className="bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl px-4 py-3 text-gray-900 dark:text-white text-base mb-5 min-h-[140px]"
+          className="rounded-xl px-4 py-3 text-base mb-5 min-h-[140px]"
+          style={{
+            ...colors.bgInput,
+            borderWidth: 1,
+            borderColor: colors.inputBorder,
+            color: colors.textPrimary,
+          }}
         />
 
         {/* Reveal style picker */}
-        <Text className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">
+        <Text
+          className="text-xs font-bold uppercase tracking-widest mb-3"
+          style={{ color: colors.textSecondary }}
+        >
           Reveal style
         </Text>
         <ScrollView
@@ -231,23 +258,26 @@ export default function CreateScreen() {
               <Pressable
                 key={style}
                 onPress={() => setRevealStyle(style)}
-                className={`mr-3 rounded-2xl p-4 w-32 border-2 ${
-                  selected
-                    ? 'border-brand-500 bg-brand-50 dark:bg-brand-950'
-                    : 'border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800'
-                }`}
+                className="mr-3 rounded-2xl p-4 w-32"
+                style={{
+                  ...(selected ? { backgroundColor: colors.accentBg } : colors.bgCard),
+                  borderWidth: selected ? 2 : 1,
+                  borderColor: selected ? colors.accent : colors.cardBorder,
+                }}
               >
                 <Text className="text-3xl text-center mb-2">{meta.emoji}</Text>
                 <Text
-                  className={`text-sm font-semibold text-center ${
-                    selected
-                      ? 'text-brand-600 dark:text-brand-400'
-                      : 'text-gray-700 dark:text-gray-300'
-                  }`}
+                  className="text-sm font-semibold text-center"
+                  style={{
+                    color: selected ? colors.accent : colors.textSecondary,
+                  }}
                 >
                   {meta.label}
                 </Text>
-                <Text className="text-xs text-gray-400 dark:text-gray-500 text-center mt-1">
+                <Text
+                  className="text-xs text-center mt-1"
+                  style={{ color: colors.textTertiary }}
+                >
                   {meta.description}
                 </Text>
               </Pressable>
@@ -256,35 +286,29 @@ export default function CreateScreen() {
         </ScrollView>
 
         {/* Send mode toggle */}
-        <Text className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">
-          Delivery method
+        <Text
+          className="text-xs font-bold uppercase tracking-widest mb-3"
+          style={{ color: colors.textSecondary }}
+        >
+          Delivery
         </Text>
         <View
-          style={{
-            flexDirection: 'row',
-            marginBottom: 20,
-            backgroundColor: '#f3f4f6',
-            borderRadius: 12,
-            padding: 4,
-          }}
+          className="flex-row mb-5 rounded-xl p-1"
+          style={colors.bgCard}
         >
           <Pressable
             onPress={() => setSendMode('push')}
-            style={{
-              flex: 1,
-              borderRadius: 8,
-              paddingVertical: 12,
-              alignItems: 'center',
-              ...(sendMode === 'push'
-                ? { backgroundColor: '#fff', shadowColor: '#000', shadowOpacity: 0.05, shadowRadius: 2, shadowOffset: { width: 0, height: 1 } }
-                : {}),
-            }}
+            className="flex-1 rounded-lg py-3 items-center"
+            style={sendMode === 'push' ? {
+              backgroundColor: colors.accentBg,
+              borderWidth: 1,
+              borderColor: colors.accentBorder,
+            } : undefined}
           >
             <Text
+              className="font-semibold text-sm"
               style={{
-                fontWeight: '600',
-                fontSize: 14,
-                color: sendMode === 'push' ? '#26adae' : '#6b7280',
+                color: sendMode === 'push' ? colors.accent : colors.textTertiary,
               }}
             >
               Push to Phone
@@ -292,21 +316,17 @@ export default function CreateScreen() {
           </Pressable>
           <Pressable
             onPress={() => setSendMode('link')}
-            style={{
-              flex: 1,
-              borderRadius: 8,
-              paddingVertical: 12,
-              alignItems: 'center',
-              ...(sendMode === 'link'
-                ? { backgroundColor: '#fff', shadowColor: '#000', shadowOpacity: 0.05, shadowRadius: 2, shadowOffset: { width: 0, height: 1 } }
-                : {}),
-            }}
+            className="flex-1 rounded-lg py-3 items-center"
+            style={sendMode === 'link' ? {
+              backgroundColor: colors.accentBg,
+              borderWidth: 1,
+              borderColor: colors.accentBorder,
+            } : undefined}
           >
             <Text
+              className="font-semibold text-sm"
               style={{
-                fontWeight: '600',
-                fontSize: 14,
-                color: sendMode === 'link' ? '#26adae' : '#6b7280',
+                color: sendMode === 'link' ? colors.accent : colors.textTertiary,
               }}
             >
               Share Link
@@ -317,18 +337,30 @@ export default function CreateScreen() {
         {/* Recipient phone (push mode only) */}
         {sendMode === 'push' && (
           <>
-            <Text className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">
+            <Text
+              className="text-xs font-bold uppercase tracking-widest mb-2"
+              style={{ color: colors.textSecondary }}
+            >
               Recipient&apos;s phone number
             </Text>
             <TextInput
               value={recipientPhone}
               onChangeText={setRecipientPhone}
               placeholder="+1 (555) 123-4567"
-              placeholderTextColor="#9ca3af"
+              placeholderTextColor={colors.inputPlaceholder}
               keyboardType="phone-pad"
-              className="bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl px-4 py-3 text-gray-900 dark:text-white text-base mb-1"
+              className="rounded-xl px-4 py-3 text-base mb-1"
+              style={{
+                ...colors.bgInput,
+                borderWidth: 1,
+                borderColor: colors.inputBorder,
+                color: colors.textPrimary,
+              }}
             />
-            <Text className="text-xs text-gray-400 dark:text-gray-500 mb-5">
+            <Text
+              className="text-xs mb-5"
+              style={{ color: colors.textTertiary }}
+            >
               They must have Fliq installed to receive push secrets
             </Text>
           </>
@@ -338,18 +370,32 @@ export default function CreateScreen() {
         <Pressable
           onPress={handleShare}
           disabled={!canShare || sharing}
-          className={`rounded-xl py-4 items-center ${
-            canShare && !sharing
-              ? 'bg-brand-500 active:bg-brand-600'
-              : 'bg-gray-300 dark:bg-gray-700'
-          }`}
+          className="rounded-xl py-4 items-center"
+          style={{
+            ...(isEnabled
+              ? { backgroundColor: colors.accent }
+              : { ...colors.bgCard, borderWidth: 1, borderColor: colors.cardBorder }),
+            ...(isEnabled && colors.isDark
+              ? {
+                  shadowColor: colors.accent,
+                  shadowOpacity: 0.3,
+                  shadowRadius: 12,
+                  shadowOffset: { width: 0, height: 4 },
+                }
+              : {}),
+          }}
         >
-          <Text className="text-white font-semibold text-base">
+          <Text
+            className="font-bold text-base"
+            style={{
+              color: isEnabled ? colors.accentText : colors.textTertiary,
+            }}
+          >
             {sharing
               ? 'Sending...'
               : sendMode === 'push'
                 ? 'Send Secret'
-                : 'Share Secret \u{1F92B}'}
+                : 'Share Secret'}
           </Text>
         </Pressable>
       </ScrollView>

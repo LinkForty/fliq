@@ -45,11 +45,17 @@ export async function initializeDatabase() {
       sender_name VARCHAR(100) NOT NULL,
       recipient_phone VARCHAR(20) NOT NULL,
       content TEXT NOT NULL,
+      content_nonce VARCHAR(100),
       reveal_style VARCHAR(20) NOT NULL DEFAULT 'flick',
       created_at TIMESTAMP DEFAULT NOW(),
       expires_at TIMESTAMP NOT NULL,
       fetched_at TIMESTAMP
     )
+  `);
+
+  // Add content_nonce column if table already exists without it
+  await db.query(`
+    ALTER TABLE messages ADD COLUMN IF NOT EXISTS content_nonce VARCHAR(100)
   `);
 
   await db.query('CREATE INDEX IF NOT EXISTS idx_messages_recipient ON messages(recipient_phone)');

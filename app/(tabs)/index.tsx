@@ -6,10 +6,12 @@ import { getMessages, deleteMessage } from '@/lib/storage';
 import { trackEvent } from '@/lib/sdk';
 import { timeAgo } from '@/lib/time';
 import { REVEAL_STYLES } from '@/lib/reveal-styles';
+import { useTheme } from '@/lib/theme';
 import type { Message } from '@/lib/types';
 
 export default function HomeScreen() {
   const router = useRouter();
+  const { colors } = useTheme();
   const [messages, setMessages] = useState<Message[]>([]);
 
   useFocusEffect(
@@ -34,24 +36,42 @@ export default function HomeScreen() {
   }, []);
 
   return (
-    <View className="flex-1 bg-white dark:bg-gray-900">
+    <View style={{ flex: 1, backgroundColor: colors.bg }}>
       {messages.length === 0 ? (
-        <View className="flex-1 items-center justify-center px-8">
-          <View className="w-16 h-16 items-center justify-center mb-4" style={{ overflow: 'visible' }}>
-            <Text style={{ fontSize: 48, lineHeight: 58 }}>🤫</Text>
+        <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 32 }}>
+          <View
+            style={{
+              width: 80,
+              height: 80,
+              borderRadius: 40,
+              alignItems: 'center',
+              justifyContent: 'center',
+              marginBottom: 24,
+              backgroundColor: colors.accentBg,
+              borderWidth: 1,
+              borderColor: colors.accentBorder,
+              ...(colors.isDark && {
+                shadowColor: colors.accent,
+                shadowOpacity: 0.3,
+                shadowRadius: 20,
+                shadowOffset: { width: 0, height: 0 },
+              }),
+            }}
+          >
+            <Text style={{ fontSize: 36, lineHeight: 44 }}>🤫</Text>
           </View>
-          <Text className="text-xl font-bold text-gray-900 dark:text-white text-center">
+          <Text style={{ fontSize: 20, fontWeight: '700', color: colors.textPrimary, textAlign: 'center' }}>
             No secrets yet
           </Text>
-          <Text className="mt-2 text-gray-500 dark:text-gray-400 text-center">
-            Create your first secret message and share it with someone!
+          <Text style={{ marginTop: 8, color: colors.textSecondary, textAlign: 'center' }}>
+            Send your first secret message
           </Text>
         </View>
       ) : (
         <FlatList
           data={messages}
           keyExtractor={(item) => item.id}
-          contentContainerClassName="px-4 pt-2 pb-4"
+          contentContainerStyle={{ paddingHorizontal: 16, paddingTop: 8, paddingBottom: 16 }}
           renderItem={({ item }) => (
             <SwipeableMessageCard
               message={item}
@@ -64,16 +84,31 @@ export default function HomeScreen() {
               }
             />
           )}
-          ItemSeparatorComponent={() => <View className="h-3" />}
+          ItemSeparatorComponent={() => <View style={{ height: 12 }} />}
         />
       )}
 
       {/* FAB */}
       <Pressable
         onPress={() => router.push('/create')}
-        className="absolute bottom-6 right-6 w-14 h-14 rounded-full bg-brand-500 items-center justify-center shadow-lg active:bg-brand-600"
+        style={{
+          position: 'absolute',
+          bottom: 24,
+          right: 24,
+          width: 56,
+          height: 56,
+          borderRadius: 28,
+          backgroundColor: colors.accent,
+          alignItems: 'center',
+          justifyContent: 'center',
+          shadowColor: colors.accent,
+          shadowOpacity: 0.4,
+          shadowRadius: 12,
+          shadowOffset: { width: 0, height: 4 },
+          elevation: 8,
+        }}
       >
-        <Text className="text-white text-3xl font-light leading-none">+</Text>
+        <Text style={{ color: colors.accentText, fontSize: 30, fontWeight: '300', lineHeight: 32 }}>+</Text>
       </Pressable>
     </View>
   );
@@ -95,9 +130,16 @@ function SwipeableMessageCard({
       renderRightActions={() => (
         <Pressable
           onPress={onDelete}
-          className="bg-red-500 rounded-2xl justify-center items-center px-5 ml-3"
+          style={{
+            backgroundColor: '#ef4444',
+            borderRadius: 16,
+            justifyContent: 'center',
+            alignItems: 'center',
+            paddingHorizontal: 20,
+            marginLeft: 12,
+          }}
         >
-          <Text className="text-white text-xs font-semibold">Delete</Text>
+          <Text style={{ color: '#fff', fontSize: 12, fontWeight: '600' }}>Delete</Text>
         </Pressable>
       )}
     >
@@ -113,6 +155,7 @@ function MessageCard({
   message: Message;
   onPress: () => void;
 }) {
+  const { colors } = useTheme();
   const style = REVEAL_STYLES[message.revealStyle];
   const senderLabel =
     message.direction === 'sent' ? 'You' : message.senderName;
@@ -120,36 +163,67 @@ function MessageCard({
   return (
     <Pressable
       onPress={onPress}
-      className="bg-gray-50 dark:bg-gray-800 rounded-2xl p-4 active:opacity-80 overflow-visible"
+      style={{
+        borderRadius: 16,
+        padding: 16,
+        ...colors.bgCard,
+        borderWidth: 1,
+        borderColor: message.isRead ? colors.cardBorder : colors.cardBorderUnread,
+      }}
     >
-      <View className="flex-row items-center justify-between">
-        <View className="flex-row items-center flex-1">
-          <View className="w-9 h-9 items-center justify-center mr-3" style={{ overflow: 'visible' }}>
-            <Text style={{ fontSize: 24, lineHeight: 32 }}>{style.emoji}</Text>
+      <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
+        <View style={{ flexDirection: 'row', alignItems: 'center', flex: 1 }}>
+          <View
+            style={{
+              width: 40,
+              height: 40,
+              borderRadius: 12,
+              alignItems: 'center',
+              justifyContent: 'center',
+              marginRight: 12,
+              backgroundColor: colors.accentBg,
+              borderWidth: 1,
+              borderColor: colors.accentBorder,
+            }}
+          >
+            <Text style={{ fontSize: 20, lineHeight: 26 }}>{style.emoji}</Text>
           </View>
-          <View className="flex-1">
-            <View className="flex-row items-center">
-              <Text
-                className={`font-semibold ${
-                  message.isRead
-                    ? 'text-gray-700 dark:text-gray-300'
-                    : 'text-gray-900 dark:text-white'
-                }`}
-              >
+          <View style={{ flex: 1 }}>
+            <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+              <Text style={{ fontWeight: '700', color: colors.textPrimary }}>
                 {senderLabel}
               </Text>
+              <View
+                style={{
+                  marginLeft: 8,
+                  paddingHorizontal: 6,
+                  paddingVertical: 2,
+                  borderRadius: 4,
+                  backgroundColor: colors.accentBg,
+                }}
+              >
+                <Text style={{ color: colors.accent, fontSize: 10, fontWeight: '700', textTransform: 'uppercase' }}>
+                  {style.label}
+                </Text>
+              </View>
               {!message.isRead && (
-                <View className="w-2 h-2 rounded-full bg-brand-500 ml-2" />
+                <View
+                  style={{
+                    width: 8,
+                    height: 8,
+                    borderRadius: 4,
+                    backgroundColor: colors.accent,
+                    marginLeft: 8,
+                  }}
+                />
               )}
             </View>
-            <Text className="text-xs text-gray-400 dark:text-gray-500 mt-0.5">
-              {style.label} · {timeAgo(message.createdAt)}
+            <Text style={{ fontSize: 12, color: colors.textTertiary, marginTop: 2 }}>
+              {message.direction === 'sent' ? '↑ Sent' : '↓ Received'} · {timeAgo(message.createdAt)}
             </Text>
           </View>
         </View>
-        <Text className="text-xs text-gray-400 dark:text-gray-500">
-          {message.direction === 'sent' ? '↑ Sent' : '↓ Received'}
-        </Text>
+        <Text style={{ color: colors.textTertiary, fontSize: 18 }}>›</Text>
       </View>
     </Pressable>
   );

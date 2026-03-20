@@ -7,6 +7,7 @@ import Animated, {
   withSpring,
   runOnJS,
 } from 'react-native-reanimated';
+import { useTheme } from '@/lib/theme';
 
 type Props = {
   content: string;
@@ -17,6 +18,7 @@ const HOLD_DURATION = 2500; // ms to fully reveal
 const TICK_INTERVAL = 50; // update interval
 
 export function BlurReveal({ content, onRevealed }: Props) {
+  const { colors } = useTheme();
   const progress = useSharedValue(0); // 0 = fully hidden, 1 = fully revealed
   const isRevealed = useRef(false);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
@@ -60,24 +62,47 @@ export function BlurReveal({ content, onRevealed }: Props) {
       onPressOut={stopReveal}
       className="flex-1"
     >
-      <View className="flex-1 rounded-2xl bg-gray-100 dark:bg-gray-800 overflow-hidden items-center justify-center p-8">
+      <View
+        className="flex-1 rounded-2xl overflow-hidden items-center justify-center p-8"
+        style={{
+          ...colors.bgCard,
+          borderWidth: 1,
+          borderColor: colors.isDark ? colors.accentBorder : colors.cardBorder,
+        }}
+      >
         {/* The actual message */}
         <Animated.View style={textStyle} className="absolute inset-0 items-center justify-center p-8">
-          <Text className="text-xl text-gray-900 dark:text-white text-center leading-relaxed">
+          <Text
+            className="text-xl text-center leading-relaxed"
+            style={{ color: colors.textPrimary }}
+          >
             {content}
           </Text>
         </Animated.View>
 
         {/* The blur overlay */}
         <Animated.View
-          style={overlayStyle}
-          className="absolute inset-0 bg-gray-100 dark:bg-gray-800 items-center justify-center"
+          style={[
+            overlayStyle,
+            {
+              ...colors.revealCoverBg,
+              borderWidth: 1,
+              borderColor: colors.revealCoverBorder,
+            },
+          ]}
+          className="absolute inset-0 items-center justify-center"
         >
           <Text className="text-6xl mb-4">🔒</Text>
-          <Text className="text-lg font-semibold text-gray-700 dark:text-gray-300 text-center">
+          <Text
+            className="text-lg font-bold text-center"
+            style={{ color: colors.isDark ? colors.accent : colors.textPrimary }}
+          >
             Tap and hold to reveal
           </Text>
-          <Text className="text-sm text-gray-400 dark:text-gray-500 mt-2 text-center">
+          <Text
+            className="text-sm mt-2 text-center"
+            style={{ color: colors.textSecondary }}
+          >
             Keep holding until the secret is fully revealed
           </Text>
         </Animated.View>

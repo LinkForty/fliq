@@ -16,11 +16,20 @@ import { getSettings, saveSettings, clearSettings } from '@/lib/settings';
 import { initializeSDK, isConnected, resetSDK } from '@/lib/sdk';
 import { clearMessages } from '@/lib/storage';
 import { registerForPushNotifications, registerDevice } from '@/lib/push';
+import { useTheme } from '@/lib/theme';
+import type { ThemePreference } from '@/lib/settings';
 
 const DEFAULT_BASE_URL = 'https://api.linkforty.com';
 
+const THEME_OPTIONS: { value: ThemePreference; label: string }[] = [
+  { value: 'dark', label: 'Dark' },
+  { value: 'light', label: 'Light' },
+  { value: 'system', label: 'System' },
+];
+
 export default function SettingsScreen() {
   const router = useRouter();
+  const { colors, preference, setTheme } = useTheme();
   const [apiKey, setApiKey] = useState('');
   const [baseUrl, setBaseUrl] = useState(DEFAULT_BASE_URL);
   const [connected, setConnected] = useState(false);
@@ -108,60 +117,135 @@ export default function SettingsScreen() {
       className="flex-1"
     >
       <ScrollView
-        className="flex-1 bg-white dark:bg-gray-900"
+        className="flex-1"
+        style={{ backgroundColor: colors.bg }}
         contentContainerClassName="p-5"
         keyboardShouldPersistTaps="handled"
       >
         {/* Push Notifications */}
-        <Text className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">
+        <Text
+          className="text-xs font-bold uppercase tracking-widest mb-3"
+          style={{ color: colors.textSecondary }}
+        >
           Push Notifications
         </Text>
-        <View className="p-4 rounded-xl bg-gray-50 dark:bg-gray-800 mb-1">
+        <View
+          className="p-4 rounded-xl mb-1"
+          style={{ ...colors.bgCard, borderWidth: 1, borderColor: colors.cardBorder }}
+        >
           <View className="flex-row items-center mb-3">
             <View
-              className={`w-3 h-3 rounded-full mr-3 ${
-                pushRegistered ? 'bg-green-500' : 'bg-gray-400'
-              }`}
+              className="w-3 h-3 rounded-full mr-3"
+              style={{
+                backgroundColor: pushRegistered
+                  ? colors.statusActive
+                  : colors.statusInactive,
+              }}
             />
-            <Text className="font-semibold text-gray-900 dark:text-white">
+            <Text className="font-semibold" style={{ color: colors.textPrimary }}>
               {pushRegistered ? 'Push active' : 'Push not configured'}
             </Text>
           </View>
-          <Text className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">
+          <Text
+            className="text-xs font-bold uppercase tracking-widest mb-1.5"
+            style={{ color: colors.textSecondary }}
+          >
             Your Phone Number
           </Text>
           <TextInput
             value={phoneNumber}
             onChangeText={setPhoneNumber}
             placeholder="+1 (555) 123-4567"
-            placeholderTextColor="#9ca3af"
+            placeholderTextColor={colors.inputPlaceholder}
             keyboardType="phone-pad"
-            className="bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-xl px-4 py-3 text-gray-900 dark:text-white text-base mb-3"
+            className="rounded-xl px-4 py-3 text-base mb-3"
+            style={{
+              ...colors.bgInput,
+              borderWidth: 1,
+              borderColor: colors.inputBorder,
+              color: colors.textPrimary,
+            }}
           />
           <Pressable
             onPress={handleUpdatePhone}
-            className="rounded-xl py-3 items-center bg-brand-500 active:bg-brand-600"
+            className="rounded-xl py-3 items-center"
+            style={{
+              borderWidth: 1,
+              borderColor: colors.accent,
+            }}
           >
-            <Text className="text-white font-semibold text-sm">
+            <Text className="font-semibold text-sm" style={{ color: colors.accent }}>
               {pushRegistered ? 'Update Phone Number' : 'Save & Enable Push'}
             </Text>
           </Pressable>
         </View>
-        <Text className="text-xs text-gray-400 dark:text-gray-500 mb-6">
+        <Text
+          className="text-xs mb-6"
+          style={{ color: colors.textTertiary }}
+        >
           Friends send you secrets by entering this phone number
         </Text>
 
+        {/* Appearance */}
+        <View className="pt-6" style={{ borderTopWidth: 1, borderTopColor: colors.sectionBorder }}>
+          <Text
+            className="text-xs font-bold uppercase tracking-widest mb-3"
+            style={{ color: colors.textSecondary }}
+          >
+            Appearance
+          </Text>
+          <View
+            className="flex-row rounded-xl p-1"
+            style={{ ...colors.bgCard, borderWidth: 1, borderColor: colors.cardBorder }}
+          >
+            {THEME_OPTIONS.map((option) => {
+              const selected = preference === option.value;
+              return (
+                <Pressable
+                  key={option.value}
+                  onPress={() => setTheme(option.value)}
+                  className="flex-1 rounded-lg py-3 items-center"
+                  style={
+                    selected
+                      ? {
+                          backgroundColor: colors.accentBg,
+                          borderWidth: 1,
+                          borderColor: colors.accentBorder,
+                        }
+                      : undefined
+                  }
+                >
+                  <Text
+                    className="font-semibold text-sm"
+                    style={{
+                      color: selected ? colors.accent : colors.textSecondary,
+                    }}
+                  >
+                    {option.label}
+                  </Text>
+                </Pressable>
+              );
+            })}
+          </View>
+        </View>
+
         {/* Preferences */}
-        <View className="pt-6 border-t border-gray-200 dark:border-gray-700">
-          <Text className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">
+        <View className="pt-6 mt-6" style={{ borderTopWidth: 1, borderTopColor: colors.sectionBorder }}>
+          <Text
+            className="text-xs font-bold uppercase tracking-widest mb-3"
+            style={{ color: colors.textSecondary }}
+          >
             Preferences
           </Text>
-          <View className="flex-row items-center justify-between p-4 rounded-xl bg-gray-50 dark:bg-gray-800">
+          <View
+            className="flex-row items-center justify-between p-4 rounded-xl"
+            style={{ ...colors.bgCard, borderWidth: 1, borderColor: colors.cardBorder }}
+          >
             <View className="flex-1 mr-4">
-              <Text className="font-semibold text-gray-900 dark:text-white">
+              <Text className="font-semibold" style={{ color: colors.textPrimary }}>
                 Auto-delete after reading
               </Text>
-              <Text className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
+              <Text className="text-xs mt-0.5" style={{ color: colors.textTertiary }}>
                 Messages are removed from your device after being revealed
               </Text>
             </View>
@@ -172,16 +256,19 @@ export default function SettingsScreen() {
                 const settings = await getSettings();
                 await saveSettings({ ...settings, autoDeleteAfterRead: value });
               }}
-              trackColor={{ false: '#d1d5db', true: '#8ad4d5' }}
-              thumbColor={autoDelete ? '#26adae' : '#f3f4f6'}
+              trackColor={{ false: colors.trackOff, true: colors.trackOn }}
+              thumbColor={autoDelete ? colors.thumbOn : colors.thumbOff}
             />
           </View>
-          <View className="flex-row items-center justify-between p-4 rounded-xl bg-gray-50 dark:bg-gray-800 mt-3">
+          <View
+            className="flex-row items-center justify-between p-4 rounded-xl mt-3"
+            style={{ ...colors.bgCard, borderWidth: 1, borderColor: colors.cardBorder }}
+          >
             <View className="flex-1 mr-4">
-              <Text className="font-semibold text-gray-900 dark:text-white">
+              <Text className="font-semibold" style={{ color: colors.textPrimary }}>
                 Auto-delete after sending
               </Text>
-              <Text className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
+              <Text className="text-xs mt-0.5" style={{ color: colors.textTertiary }}>
                 Sent messages are not saved to your device
               </Text>
             </View>
@@ -192,30 +279,39 @@ export default function SettingsScreen() {
                 const settings = await getSettings();
                 await saveSettings({ ...settings, autoDeleteAfterSend: value });
               }}
-              trackColor={{ false: '#d1d5db', true: '#8ad4d5' }}
-              thumbColor={autoDeleteSend ? '#26adae' : '#f3f4f6'}
+              trackColor={{ false: colors.trackOff, true: colors.trackOn }}
+              thumbColor={autoDeleteSend ? colors.thumbOn : colors.thumbOff}
             />
           </View>
         </View>
 
         {/* LinkForty Integration */}
-        <View className="mt-10 pt-6 border-t border-gray-200 dark:border-gray-700">
-          <Text className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">
-            LinkForty Integration
+        <View className="mt-10 pt-6" style={{ borderTopWidth: 1, borderTopColor: colors.sectionBorder }}>
+          <Text
+            className="text-xs font-bold uppercase tracking-widest mb-3"
+            style={{ color: colors.textSecondary }}
+          >
+            LinkForty SDK
           </Text>
 
           {/* Status */}
-          <View className="flex-row items-center mb-4 p-4 rounded-xl bg-gray-50 dark:bg-gray-800">
+          <View
+            className="flex-row items-center mb-4 p-4 rounded-xl"
+            style={{ ...colors.bgCard, borderWidth: 1, borderColor: colors.cardBorder }}
+          >
             <View
-              className={`w-3 h-3 rounded-full mr-3 ${
-                connected ? 'bg-green-500' : 'bg-gray-400'
-              }`}
+              className="w-3 h-3 rounded-full mr-3"
+              style={{
+                backgroundColor: connected
+                  ? colors.statusActive
+                  : colors.statusInactive,
+              }}
             />
             <View className="flex-1">
-              <Text className="font-semibold text-gray-900 dark:text-white">
+              <Text className="font-semibold" style={{ color: colors.textPrimary }}>
                 {connected ? 'Connected' : 'Not connected'}
               </Text>
-              <Text className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
+              <Text className="text-xs mt-0.5" style={{ color: colors.textTertiary }}>
                 {connected
                   ? 'Links and events are being tracked in your LinkForty dashboard'
                   : 'Running in standalone mode \u2014 no data is sent to LinkForty'}
@@ -224,37 +320,55 @@ export default function SettingsScreen() {
           </View>
 
           {/* API Key */}
-          <Text className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">
+          <Text
+            className="text-xs font-bold uppercase tracking-widest mb-1.5"
+            style={{ color: colors.textSecondary }}
+          >
             API Key
           </Text>
           <TextInput
             value={apiKey}
             onChangeText={setApiKey}
             placeholder="dl_xxxxxxxxxxxxxxxx..."
-            placeholderTextColor="#9ca3af"
+            placeholderTextColor={colors.inputPlaceholder}
             autoCapitalize="none"
             autoCorrect={false}
-            className="bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl px-4 py-3 text-gray-900 dark:text-white text-base mb-1 font-mono"
+            className="rounded-xl px-4 py-3 text-base mb-1 font-mono"
+            style={{
+              ...colors.bgInput,
+              borderWidth: 1,
+              borderColor: colors.inputBorder,
+              color: colors.textPrimary,
+            }}
           />
-          <Text className="text-xs text-gray-400 dark:text-gray-500 mb-5">
+          <Text className="text-xs mb-5" style={{ color: colors.textTertiary }}>
             Get your API key from the LinkForty dashboard under Settings &rarr; API Keys
           </Text>
 
           {/* Base URL */}
-          <Text className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">
+          <Text
+            className="text-xs font-bold uppercase tracking-widest mb-1.5"
+            style={{ color: colors.textSecondary }}
+          >
             Base URL
           </Text>
           <TextInput
             value={baseUrl}
             onChangeText={setBaseUrl}
             placeholder="https://api.linkforty.com"
-            placeholderTextColor="#9ca3af"
+            placeholderTextColor={colors.inputPlaceholder}
             autoCapitalize="none"
             autoCorrect={false}
             keyboardType="url"
-            className="bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl px-4 py-3 text-gray-900 dark:text-white text-base mb-1"
+            className="rounded-xl px-4 py-3 text-base mb-1"
+            style={{
+              ...colors.bgInput,
+              borderWidth: 1,
+              borderColor: colors.inputBorder,
+              color: colors.textPrimary,
+            }}
           />
-          <Text className="text-xs text-gray-400 dark:text-gray-500 mb-6">
+          <Text className="text-xs mb-6" style={{ color: colors.textTertiary }}>
             Use the default unless you're running a self-hosted LinkForty instance
           </Text>
 
@@ -262,9 +376,10 @@ export default function SettingsScreen() {
           {connected ? (
             <Pressable
               onPress={handleDisconnect}
-              className="rounded-xl py-4 items-center border-2 border-red-500 active:bg-red-50 dark:active:bg-red-950"
+              className="rounded-xl py-4 items-center"
+              style={{ borderWidth: 2, borderColor: '#ef4444' }}
             >
-              <Text className="text-red-500 font-semibold text-base">
+              <Text className="font-semibold text-base" style={{ color: '#ef4444' }}>
                 Disconnect
               </Text>
             </Pressable>
@@ -272,13 +387,19 @@ export default function SettingsScreen() {
             <Pressable
               onPress={handleConnect}
               disabled={loading}
-              className={`rounded-xl py-4 items-center ${
-                loading
-                  ? 'bg-gray-300 dark:bg-gray-700'
-                  : 'bg-brand-500 active:bg-brand-600'
-              }`}
+              className="rounded-xl py-4 items-center"
+              style={{
+                backgroundColor: loading
+                  ? (colors.bgCard as { backgroundColor: string }).backgroundColor
+                  : colors.accent,
+              }}
             >
-              <Text className="text-white font-semibold text-base">
+              <Text
+                className="font-bold text-base"
+                style={{
+                  color: loading ? colors.textTertiary : colors.accentText,
+                }}
+              >
                 {loading ? 'Connecting...' : 'Connect'}
               </Text>
             </Pressable>
@@ -286,29 +407,34 @@ export default function SettingsScreen() {
         </View>
 
         {/* Legal */}
-        <View className="mt-10 pt-6 border-t border-gray-200 dark:border-gray-700">
-          <Text className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">
+        <View className="mt-10 pt-6" style={{ borderTopWidth: 1, borderTopColor: colors.sectionBorder }}>
+          <Text
+            className="text-xs font-bold uppercase tracking-widest mb-3"
+            style={{ color: colors.textSecondary }}
+          >
             Legal
           </Text>
           <Pressable
             onPress={() => WebBrowser.openBrowserAsync('https://fliq.linkforty.com/privacy')}
-            className="flex-row items-center justify-between p-4 rounded-xl bg-gray-50 dark:bg-gray-800"
+            className="flex-row items-center justify-between p-4 rounded-xl"
+            style={{ ...colors.bgCard, borderWidth: 1, borderColor: colors.cardBorder }}
           >
-            <Text className="font-semibold text-gray-900 dark:text-white">Privacy Policy</Text>
-            <Text className="text-gray-400">&rsaquo;</Text>
+            <Text className="font-semibold" style={{ color: colors.textPrimary }}>Privacy Policy</Text>
+            <Text className="text-lg" style={{ color: colors.textTertiary }}>&rsaquo;</Text>
           </Pressable>
           <Pressable
             onPress={() => WebBrowser.openBrowserAsync('https://fliq.linkforty.com/terms')}
-            className="flex-row items-center justify-between p-4 rounded-xl bg-gray-50 dark:bg-gray-800 mt-3"
+            className="flex-row items-center justify-between p-4 rounded-xl mt-3"
+            style={{ ...colors.bgCard, borderWidth: 1, borderColor: colors.cardBorder }}
           >
-            <Text className="font-semibold text-gray-900 dark:text-white">Terms of Service</Text>
-            <Text className="text-gray-400">&rsaquo;</Text>
+            <Text className="font-semibold" style={{ color: colors.textPrimary }}>Terms of Service</Text>
+            <Text className="text-lg" style={{ color: colors.textTertiary }}>&rsaquo;</Text>
           </Pressable>
         </View>
 
         {/* Data */}
-        <View className="mt-10 pt-6 border-t border-gray-200 dark:border-gray-700">
-          <Text className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">
+        <View className="mt-10 pt-6" style={{ borderTopWidth: 1, borderTopColor: colors.sectionBorder }}>
+          <Text className="text-xs font-bold uppercase tracking-widest mb-3" style={{ color: '#ef4444' }}>
             Data
           </Text>
           <Pressable
@@ -329,13 +455,14 @@ export default function SettingsScreen() {
                 ],
               )
             }
-            className="rounded-xl py-4 items-center border-2 border-red-500 active:bg-red-50 dark:active:bg-red-950"
+            className="rounded-xl py-4 items-center"
+            style={{ borderWidth: 2, borderColor: '#ef4444' }}
           >
-            <Text className="text-red-500 font-semibold text-base">
+            <Text className="font-semibold text-base" style={{ color: '#ef4444' }}>
               Clear All Messages
             </Text>
           </Pressable>
-          <Text className="text-xs text-gray-400 dark:text-gray-500 mt-2 text-center">
+          <Text className="text-xs mt-2 text-center" style={{ color: colors.textTertiary }}>
             Permanently deletes all messages from this device
           </Text>
 
@@ -365,7 +492,7 @@ export default function SettingsScreen() {
               Reset App Data
             </Text>
           </Pressable>
-          <Text className="text-xs text-gray-400 dark:text-gray-500 mt-2 text-center">
+          <Text className="text-xs mt-2 text-center" style={{ color: colors.textTertiary }}>
             Erases everything and returns to onboarding
           </Text>
         </View>

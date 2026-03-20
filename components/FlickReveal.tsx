@@ -8,6 +8,7 @@ import Animated, {
   withSequence,
   Easing,
 } from 'react-native-reanimated';
+import { useTheme } from '@/lib/theme';
 
 type Props = {
   content: string;
@@ -18,6 +19,7 @@ const FLICK_THRESHOLD = 2.5; // g-force needed to trigger
 const COOLDOWN_MS = 500;
 
 export function FlickReveal({ content, onRevealed }: Props) {
+  const { colors } = useTheme();
   const [revealed, setRevealed] = useState(false);
   const lastFlickTime = useRef(0);
   const hasRevealed = useRef(false);
@@ -83,13 +85,23 @@ export function FlickReveal({ content, onRevealed }: Props) {
   }));
 
   return (
-    <View className="flex-1 rounded-2xl bg-gray-100 dark:bg-gray-800 overflow-hidden">
+    <View
+      className="flex-1 rounded-2xl overflow-hidden"
+      style={{
+        ...colors.bgCard,
+        borderWidth: 1,
+        borderColor: colors.isDark ? colors.accentBorder : colors.cardBorder,
+      }}
+    >
       {/* Message underneath */}
       <Animated.View
         style={[StyleSheet.absoluteFill, contentStyle]}
         className="items-center justify-center p-8"
       >
-        <Text className="text-xl text-gray-900 dark:text-white text-center leading-relaxed">
+        <Text
+          className="text-xl text-center leading-relaxed"
+          style={{ color: colors.textPrimary }}
+        >
           {content}
         </Text>
       </Animated.View>
@@ -97,15 +109,29 @@ export function FlickReveal({ content, onRevealed }: Props) {
       {/* Cover on top */}
       {!revealed && (
         <Animated.View
-          style={[StyleSheet.absoluteFill, coverStyle]}
-          className="items-center justify-center bg-gray-400 dark:bg-gray-600"
+          style={[
+            StyleSheet.absoluteFill,
+            coverStyle,
+            {
+              ...colors.revealCoverBg,
+              borderWidth: 1,
+              borderColor: colors.revealCoverBorder,
+            },
+          ]}
+          className="items-center justify-center"
         >
           <Animated.View style={hintStyle} className="items-center">
             <Text className="text-6xl mb-4">🫰</Text>
-            <Text className="text-lg font-semibold text-white text-center">
+            <Text
+              className="text-lg font-bold text-center"
+              style={{ color: colors.isDark ? colors.accent : colors.textPrimary }}
+            >
               Flick to reveal
             </Text>
-            <Text className="text-sm text-gray-200 mt-2 text-center px-8">
+            <Text
+              className="text-sm mt-2 text-center px-8"
+              style={{ color: colors.textSecondary }}
+            >
               Give your phone a quick flick!
             </Text>
           </Animated.View>

@@ -7,6 +7,7 @@ import Animated, {
   withTiming,
   runOnJS,
 } from 'react-native-reanimated';
+import { useTheme } from '@/lib/theme';
 
 type Props = {
   content: string;
@@ -19,6 +20,7 @@ const REVEAL_THRESHOLD = 0.45;
 const BRUSH_RADIUS = 1; // scratch a 3x3 area around touch point
 
 export function ScratchReveal({ content, onRevealed }: Props) {
+  const { colors } = useTheme();
   const [dimensions, setDimensions] = useState({ width: 0, height: 0 });
   const [scratchedCells, setScratchedCells] = useState<Set<string>>(new Set());
   const isRevealed = useRef(false);
@@ -92,12 +94,20 @@ export function ScratchReveal({ content, onRevealed }: Props) {
 
   return (
     <View
-      className="flex-1 rounded-2xl bg-gray-100 dark:bg-gray-800 overflow-hidden"
+      className="flex-1 rounded-2xl overflow-hidden"
+      style={{
+        ...colors.bgCard,
+        borderWidth: 1,
+        borderColor: colors.cardBorder,
+      }}
       onLayout={handleLayout}
     >
       {/* The actual message underneath */}
       <View className="absolute inset-0 items-center justify-center p-8">
-        <Text className="text-xl text-gray-900 dark:text-white text-center leading-relaxed">
+        <Text
+          className="text-xl text-center leading-relaxed"
+          style={{ color: colors.textPrimary }}
+        >
           {content}
         </Text>
       </View>
@@ -110,10 +120,16 @@ export function ScratchReveal({ content, onRevealed }: Props) {
             {scratchedCells.size === 0 && (
               <View className="items-center">
                 <Text className="text-6xl mb-4">🎟️</Text>
-                <Text className="text-lg font-semibold text-gray-700 dark:text-gray-300 text-center">
+                <Text
+                  className="text-lg font-bold text-center"
+                  style={{ color: colors.isDark ? colors.accent : colors.textPrimary }}
+                >
                   Scratch to reveal
                 </Text>
-                <Text className="text-sm text-gray-400 dark:text-gray-500 mt-2 text-center">
+                <Text
+                  className="text-sm mt-2 text-center"
+                  style={{ color: colors.textSecondary }}
+                >
                   Drag your finger to scratch off the surface
                 </Text>
               </View>
@@ -135,7 +151,13 @@ export function ScratchReveal({ content, onRevealed }: Props) {
                       top: row * cellH,
                       width: cellW + 1,
                       height: cellH + 1,
-                      backgroundColor: scratched ? 'transparent' : '#9ca3af',
+                      backgroundColor: scratched
+                        ? 'transparent'
+                        : colors.isDark
+                          ? 'rgba(57, 255, 20, 0.08)'
+                          : '#9ca3af',
+                      borderWidth: scratched ? 0 : colors.isDark ? 0.5 : 0,
+                      borderColor: colors.isDark ? 'rgba(57, 255, 20, 0.1)' : 'transparent',
                     }}
                   />
                 );

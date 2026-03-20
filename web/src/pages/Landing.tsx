@@ -1,7 +1,8 @@
 import { Header } from '../components/Header';
 import { HeroSection } from '../components/HeroSection';
+import { Features } from '../components/Features';
+import { WhyChooseFliq } from '../components/WhyChooseFliq';
 import { HowItWorks } from '../components/HowItWorks';
-import { DownloadCTA } from '../components/DownloadCTA';
 import { Footer } from '../components/Footer';
 
 export function Landing() {
@@ -10,8 +11,9 @@ export function Landing() {
       <Header />
       <main>
         <HeroSection />
+        <Features />
+        <WhyChooseFliq />
         <HowItWorks />
-        <DownloadCTA />
       </main>
       <Footer />
     </>

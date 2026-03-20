@@ -5,18 +5,13 @@ module.exports = {
   theme: {
     extend: {
       colors: {
-        brand: {
-          50: '#e6f7f7',
-          200: '#8ad4d5',
-          400: '#3bbcbd',
-          500: '#26adae',
-          600: '#1e8a8b',
-          950: '#0a2e2e',
+        primary: '#39FF14',
+        surface: {
+          DEFAULT: '#050507',
+          card: 'rgba(255, 255, 255, 0.07)',
         },
-        navy: '#19192d',
       },
     },
   },
   plugins: [],
 }
-

@@ -7,6 +7,7 @@ import Animated, {
   Easing,
   runOnJS,
 } from 'react-native-reanimated';
+import { useTheme } from '@/lib/theme';
 
 type Props = {
   content: string;
@@ -16,6 +17,7 @@ type Props = {
 const FLIP_DURATION = 600;
 
 export function FlipReveal({ content, onRevealed }: Props) {
+  const { colors } = useTheme();
   const rotation = useSharedValue(0); // 0 = front showing, 180 = back showing
   const hasRevealed = useRef(false);
 
@@ -32,7 +34,7 @@ export function FlipReveal({ content, onRevealed }: Props) {
     );
   }
 
-  // Front face (cover) — visible from 0° to 90°
+  // Front face (cover) — visible from 0deg to 90deg
   const frontStyle = useAnimatedStyle(() => ({
     transform: [
       { perspective: 1000 },
@@ -42,7 +44,7 @@ export function FlipReveal({ content, onRevealed }: Props) {
     opacity: rotation.value < 90 ? 1 : 0,
   }));
 
-  // Back face (message) — visible from 90° to 180°
+  // Back face (message) — visible from 90deg to 180deg
   const backStyle = useAnimatedStyle(() => ({
     transform: [
       { perspective: 1000 },
@@ -57,24 +59,49 @@ export function FlipReveal({ content, onRevealed }: Props) {
       <View className="flex-1 rounded-2xl overflow-hidden">
         {/* Back face (message) — rendered first so it's behind */}
         <Animated.View
-          style={[StyleSheet.absoluteFill, backStyle]}
-          className="items-center justify-center bg-gray-100 dark:bg-gray-800 p-8 rounded-2xl"
+          style={[
+            StyleSheet.absoluteFill,
+            backStyle,
+            {
+              ...colors.bgCard,
+              borderWidth: 1,
+              borderColor: colors.cardBorder,
+            },
+          ]}
+          className="items-center justify-center p-8 rounded-2xl"
         >
-          <Text className="text-xl text-gray-900 dark:text-white text-center leading-relaxed">
+          <Text
+            className="text-xl text-center leading-relaxed"
+            style={{ color: colors.textPrimary }}
+          >
             {content}
           </Text>
         </Animated.View>
 
         {/* Front face (cover) */}
         <Animated.View
-          style={[StyleSheet.absoluteFill, frontStyle]}
-          className="items-center justify-center bg-brand-500 dark:bg-brand-600 p-8 rounded-2xl"
+          style={[
+            StyleSheet.absoluteFill,
+            frontStyle,
+            {
+              ...colors.revealCoverBg,
+              borderWidth: 1,
+              borderColor: colors.revealCoverBorder,
+            },
+          ]}
+          className="items-center justify-center p-8 rounded-2xl"
         >
           <Text className="text-6xl mb-4">🃏</Text>
-          <Text className="text-lg font-semibold text-white text-center">
+          <Text
+            className="text-lg font-bold text-center"
+            style={{ color: colors.isDark ? colors.accent : '#ffffff' }}
+          >
             Tap to flip
           </Text>
-          <Text className="text-sm text-brand-200 mt-2 text-center">
+          <Text
+            className="text-sm mt-2 text-center"
+            style={{ color: colors.isDark ? colors.textSecondary : 'rgba(255,255,255,0.8)' }}
+          >
             Flip the card to reveal the secret
           </Text>
         </Animated.View>
