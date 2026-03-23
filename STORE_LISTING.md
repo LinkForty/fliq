@@ -27,11 +27,12 @@ Send secrets directly to a friend's phone number via push notification. No links
 
 SHARE A LINK
 
-Generate a shareable link and send it through iMessage, WhatsApp, or any messaging app. Works without an internet connection — the message is encoded right into the URL.
+Generate an encrypted shareable link and send it through iMessage, WhatsApp, or any messaging app. The message is encrypted on your device — the link contains only ciphertext that no one can read without the decryption key.
 
 PRIVACY BY DESIGN
 
-- Messages are stored only on your device
+- Zero-knowledge encryption — messages are encrypted on your device with AES-256-GCM before leaving your phone
+- Not even Fliq can read your messages — the decryption key never touches our servers
 - Push messages are deleted from the server the moment they're read
 - Messages auto-delete after reading (configurable)
 - No ads, no tracking, no data collection

@@ -114,11 +114,10 @@ export async function sendPushMessage(params: {
 }): Promise<{ messageId: string; expiresAt: string } | { error: string }> {
   const deviceId = await getDeviceId();
 
-  // Encrypt the message content — server only stores ciphertext
-  const key = generateKey();
-  const encrypted = encrypt(params.content, key);
-
   try {
+    // Encrypt the message content — server only stores ciphertext
+    const key = generateKey();
+    const encrypted = encrypt(params.content, key);
     const res = await fetch(`${getApiBase()}/api/messages`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
