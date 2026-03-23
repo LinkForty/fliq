@@ -1,3 +1,10 @@
+# [1.3.0](https://github.com/linkforty/fliq/compare/v1.2.0...v1.3.0) (2026-03-23)
+
+
+### Features
+
+* E2E encryption release prep, app store configuration, and BIS compliance ([7f5f68b](https://github.com/linkforty/fliq/commit/7f5f68bbab4e13e318bb2beb0c32ffe246f81fc4))
+
 # [1.2.0](https://github.com/linkforty/fliq/compare/v1.1.0...v1.2.0) (2026-03-20)
 
 
