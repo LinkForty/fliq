@@ -1,5 +1,5 @@
 import { gcm } from '@noble/ciphers/aes.js';
-import { randomBytes } from '@noble/ciphers/utils.js';
+import * as ExpoCrypto from 'expo-crypto';
 
 const KEY_LENGTH = 32; // 256 bits
 const NONCE_LENGTH = 12; // 96 bits (standard for AES-GCM)
@@ -17,7 +17,7 @@ export interface EncryptedPayload {
  * Generate a random AES-256 key and return it as a base64url string.
  */
 export function generateKey(): string {
-  const keyBytes = randomBytes(KEY_LENGTH);
+  const keyBytes = ExpoCrypto.getRandomBytes(KEY_LENGTH);
   return toBase64Url(keyBytes);
 }
 
@@ -27,7 +27,7 @@ export function generateKey(): string {
  */
 export function encrypt(plaintext: string, keyBase64Url: string): EncryptedPayload {
   const key = fromBase64Url(keyBase64Url);
-  const nonce = randomBytes(NONCE_LENGTH);
+  const nonce = ExpoCrypto.getRandomBytes(NONCE_LENGTH);
   const data = new TextEncoder().encode(plaintext);
 
   const cipher = gcm(key, nonce);

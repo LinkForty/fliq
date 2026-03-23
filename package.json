@@ -2,7 +2,7 @@
   "name": "fliq",
   "description": "A secret message app demonstrating deep linking with React Native and Expo Router",
   "main": "expo-router/entry",
-  "version": "1.2.0",
+  "version": "1.0.0",
   "license": "MIT",
   "repository": {
     "type": "git",

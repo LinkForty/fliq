@@ -12,10 +12,8 @@ export function Header() {
     <nav className="fixed top-0 w-full z-50 border-b border-white/5 bg-background-dark/80 backdrop-blur-md">
       <div className="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
         <Link to="/" className="flex items-center gap-3">
-          <div className="size-8 bg-primary rounded-lg flex items-center justify-center shadow-lg shadow-primary/40">
-            <span className="material-symbols-outlined text-black text-xl font-bold">vibration</span>
-          </div>
-          <span className="text-2xl font-bold tracking-tight text-white">Fliq</span>
+          <img src="/fliq-logo.png" alt="Fliq" className="size-8 rounded-lg shadow-lg shadow-primary/40" />
+          <span className="text-xl font-bold tracking-tight text-white">Fliq</span>
         </Link>
         <div className="hidden md:flex items-center gap-10">
           <a className="text-sm font-medium text-slate-400 hover:text-primary transition-colors" href="#features">Features</a>

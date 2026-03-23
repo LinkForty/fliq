@@ -20,5 +20,14 @@
     "production": {
       "autoIncrement": true
     }
+  },
+  "submit": {
+    "production": {
+      "ios": {
+        "appleId": "brandon@sitetransition.com",
+        "ascAppId": "6760805503",
+        "appleTeamId": "WUF5K3GNSD"
+      }
+    }
   }
 }
