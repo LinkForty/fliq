@@ -1,3 +1,10 @@
+## [1.3.1](https://github.com/linkforty/fliq/compare/v1.3.0...v1.3.1) (2026-03-24)
+
+
+### Bug Fixes
+
+* handle Universal Link and interstitial deep links in app URL listener ([28b4d24](https://github.com/linkforty/fliq/commit/28b4d249219a1daa6619106e13d6995d4986b9b3))
+
 # [1.3.0](https://github.com/linkforty/fliq/compare/v1.2.0...v1.3.0) (2026-03-23)
 
 
