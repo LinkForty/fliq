@@ -11,7 +11,7 @@ import { Pressable, Text } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import * as Linking from 'expo-linking';
 import { initializeSDK, onDeepLink, onDeferredDeepLink, trackEvent } from '@/lib/sdk';
-import { handleSDKDeepLink, handleSchemeDeepLink } from '@/lib/deep-link-router';
+import { handleSDKDeepLink, handleSchemeDeepLink, handleUniversalLinkDeepLink } from '@/lib/deep-link-router';
 import { isOnboardingComplete } from '@/lib/settings';
 import { fetchPushMessage } from '@/lib/push';
 import { saveMessage } from '@/lib/storage';
@@ -132,13 +132,18 @@ export default function RootLayout() {
         const subscription = Linking.addEventListener('url', ({ url }) => {
           if (url.startsWith('fliq://open')) {
             handleSchemeDeepLink(url);
+          } else if (url.includes('fliq.linkforty.com/s') || (url.startsWith('fliq://') && url.includes('e='))) {
+            // Universal Links (fliq.linkforty.com) and interstitial scheme URLs (fliq://?e=...&n=...#key)
+            handleUniversalLinkDeepLink(url);
           }
         });
 
-        // Check if app was cold-launched via fliq:// scheme
+        // Check if app was cold-launched via deep link
         Linking.getInitialURL().then((initialUrl) => {
           if (initialUrl?.startsWith('fliq://open')) {
             handleSchemeDeepLink(initialUrl);
+          } else if (initialUrl?.includes('fliq.linkforty.com/s') || (initialUrl?.startsWith('fliq://') && initialUrl?.includes('e='))) {
+            handleUniversalLinkDeepLink(initialUrl);
           }
         });
 
