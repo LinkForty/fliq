@@ -20,7 +20,7 @@
         "applinks:fliq.linkforty.com"
       ],
       "infoPlist": {
-        "ITSAppUsesNonExemptEncryption": true
+        "ITSAppUsesNonExemptEncryption": false
       },
       "privacyManifests": {
         "NSPrivacyAccessedAPITypes": [

@@ -2,6 +2,7 @@ import { router } from 'expo-router';
 import { saveMessage } from './storage';
 import { trackEvent } from './sdk';
 import { getSettings } from './settings';
+import { parseDeepLink } from './deeplink';
 import { decrypt, isEncryptedPayload, extractKeyFromFragment } from './crypto';
 import type { Message } from './types';
 import type { DeepLinkData } from '@linkforty/mobile-sdk-expo';
@@ -156,6 +157,39 @@ export async function handleSchemeDeepLink(url: string): Promise<void> {
         },
       }).catch(() => { /* best-effort cleanup */ });
     }
+
+    navigateToReveal(id);
+  } catch {
+    // Silently fail — user will see inbox
+  }
+}
+
+/**
+ * Handle a Universal Link deep link (https://fliq.linkforty.com/s?...).
+ * Parses the encrypted or legacy URL, decrypts the message, saves it,
+ * and navigates to the reveal screen. Works for both cold and warm starts.
+ */
+export async function handleUniversalLinkDeepLink(url: string): Promise<void> {
+  try {
+    const payload = parseDeepLink(url);
+    if (!payload) return;
+
+    const id = Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
+    const msg: Message = {
+      id,
+      content: payload.content,
+      revealStyle: payload.revealStyle,
+      senderName: payload.senderName,
+      createdAt: new Date().toISOString(),
+      isRead: false,
+      direction: 'received',
+    };
+
+    await saveMessage(msg);
+    trackEvent('message_received', {
+      revealStyle: msg.revealStyle,
+      source: 'universal_link',
+    });
 
     navigateToReveal(id);
   } catch {
