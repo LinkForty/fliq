@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "39204988021",
+    "project_id": "fliq-693c1",
+    "storage_bucket": "fliq-693c1.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:39204988021:android:a5e7c3f3571939f70d043c",
+        "android_client_info": {
+          "package_name": "com.linkforty.fliq"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDWSl3uwy_oIsH9aZR2d8Md07ug9MOr7kU"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

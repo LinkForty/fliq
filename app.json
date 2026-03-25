@@ -48,6 +48,10 @@
     },
     "android": {
       "package": "com.linkforty.fliq",
+      "googleServicesFile": "./google-services.json",
+      "navigationBar": {
+        "visible": "sticky-immersive"
+      },
       "adaptiveIcon": {
         "backgroundColor": "#E6F4FE",
         "foregroundImage": "./assets/images/android-icon-foreground.png",
