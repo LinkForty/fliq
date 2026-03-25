@@ -1,3 +1,10 @@
+# [1.4.0](https://github.com/linkforty/fliq/compare/v1.3.1...v1.4.0) (2026-03-25)
+
+
+### Features
+
+* add Firebase FCM for Android push notifications ([1caa7dc](https://github.com/linkforty/fliq/commit/1caa7dce636a9bda7a4bd0cd18422188986e76cf))
+
 ## [1.3.1](https://github.com/linkforty/fliq/compare/v1.3.0...v1.3.1) (2026-03-24)
 
 
