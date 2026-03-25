@@ -6,16 +6,21 @@ import {
   Pressable,
   KeyboardAvoidingView,
   Platform,
+  ScrollView,
   Alert,
 } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import Animated, {
   SlideInRight,
+  SlideInLeft,
   SlideOutLeft,
+  SlideOutRight,
 } from 'react-native-reanimated';
 import { getSettings, saveSettings } from '@/lib/settings';
 import { trackEvent } from '@/lib/sdk';
 import { registerForPushNotifications, registerDevice } from '@/lib/push';
+import { validatePhoneNumber } from '@/lib/phone-validation';
 import { useTheme } from '@/lib/theme';
 
 const PUSH_STEP = 2;
@@ -46,18 +51,23 @@ const STEPS = [
   {
     emoji: '👋',
     title: 'Set up your profile',
-    body: 'Just a name and phone number so friends can send you secrets.',
+    body: 'Your name is how recipients see who sent the secret. Your phone number is how friends find you on Fliq.',
   },
 ];
 
 export default function OnboardingScreen() {
   const router = useRouter();
   const { colors } = useTheme();
+  const insets = useSafeAreaInsets();
   const [step, setStep] = useState(0);
   const [name, setName] = useState('');
   const [phone, setPhone] = useState('');
   const [pushEnabled, setPushEnabled] = useState(false);
   const [pushToken, setPushToken] = useState<string | null>(null);
+  const [phoneVerified, setPhoneVerified] = useState(false);
+  const [phoneVerifying, setPhoneVerifying] = useState(false);
+  const [phoneError, setPhoneError] = useState<string | null>(null);
+  const [direction, setDirection] = useState<'forward' | 'back'>('forward');
   const nameInputRef = useRef<TextInput>(null);
 
   const isLastStep = step === PROFILE_STEP;
@@ -65,23 +75,55 @@ export default function OnboardingScreen() {
   const current = STEPS[step];
 
   async function handleEnablePush() {
-    const result = await registerForPushNotifications();
-    if (result.token) {
-      setPushToken(result.token);
-      setPushEnabled(true);
-    } else {
-      Alert.alert('Notifications Unavailable', result.error);
+    try {
+      const result = await registerForPushNotifications();
+      if (result.token) {
+        setPushToken(result.token);
+        setPushEnabled(true);
+      } else {
+        Alert.alert('Notifications Unavailable', result.error);
+      }
+    } catch (error) {
+      Alert.alert(
+        'Push Setup Failed',
+        error instanceof Error ? error.message : 'Could not enable push notifications.',
+      );
     }
+  }
+
+  async function handleVerifyPhone() {
+    if (phoneVerifying || phoneVerified) return;
+
+    if (!name.trim()) {
+      Alert.alert('Enter your name', 'We need a name to get started!');
+      return;
+    }
+    if (!phone.trim() || phone.trim().length < 7) {
+      setPhoneError('Please enter a valid phone number.');
+      return;
+    }
+
+    setPhoneVerifying(true);
+    setPhoneError(null);
+
+    const result = await validatePhoneNumber(phone.trim());
+
+    if (result.valid) {
+      setPhone(result.formatted);
+      setPhoneVerified(true);
+      setPhoneError(null);
+    } else {
+      setPhoneError(result.error || 'Invalid phone number.');
+      setPhoneVerified(false);
+    }
+
+    setPhoneVerifying(false);
   }
 
   async function handleNext() {
     if (isLastStep) {
-      if (!name.trim()) {
-        Alert.alert('Enter your name', 'We need a name to get started!');
-        return;
-      }
-      if (!phone.trim() || phone.trim().length < 7) {
-        Alert.alert('Enter your phone number', 'We need your phone number so friends can send you secrets.');
+      if (!phoneVerified) {
+        await handleVerifyPhone();
         return;
       }
 
@@ -89,12 +131,12 @@ export default function OnboardingScreen() {
       await saveSettings({
         ...settings,
         userName: name.trim(),
-        phoneNumber: phone.trim(),
+        phoneNumber: phone,
         onboardingComplete: true,
       });
 
       if (pushToken) {
-        const registered = await registerDevice(phone.trim());
+        const registered = await registerDevice(phone);
         if (registered) {
           const s = await getSettings();
           await saveSettings({ ...s, pushRegistered: true });
@@ -104,6 +146,7 @@ export default function OnboardingScreen() {
       trackEvent('onboarding_completed', { userName: name.trim(), hasPush: pushEnabled });
       router.replace('/');
     } else {
+      setDirection('forward');
       setStep((s) => s + 1);
     }
   }
@@ -114,12 +157,12 @@ export default function OnboardingScreen() {
       className="flex-1"
       style={{ backgroundColor: colors.bg }}
     >
-      <View className="flex-1 justify-between px-8 pt-24 pb-12">
+      <View className="flex-1 justify-between px-8 pt-24" style={{ paddingBottom: Math.max(insets.bottom, 12) + 12 }}>
         {/* Content */}
         <Animated.View
           key={step}
-          entering={SlideInRight.duration(300)}
-          exiting={SlideOutLeft.duration(200)}
+          entering={direction === 'forward' ? SlideInRight.duration(300) : SlideInLeft.duration(300)}
+          exiting={direction === 'forward' ? SlideOutLeft.duration(300) : SlideOutRight.duration(300)}
           className="flex-1 justify-center items-center"
         >
           <View
@@ -207,35 +250,84 @@ export default function OnboardingScreen() {
                 autoFocus
                 autoCapitalize="words"
                 returnKeyType="next"
+                editable={!phoneVerified}
                 className="w-full rounded-xl px-4 py-3.5 text-lg text-center"
                 style={{
                   ...colors.bgInput,
                   borderWidth: 1,
                   borderColor: colors.inputBorder,
                   color: colors.textPrimary,
+                  opacity: phoneVerified ? 0.6 : 1,
                 }}
               />
               <TextInput
                 value={phone}
-                onChangeText={setPhone}
-                placeholder="Your phone number"
+                onChangeText={(text) => {
+                  setPhone(text);
+                  setPhoneVerified(false);
+                  setPhoneError(null);
+                }}
+                placeholder="Your phone number (e.g. +1 555 123 4567)"
                 placeholderTextColor={colors.inputPlaceholder}
                 keyboardType="phone-pad"
                 returnKeyType="done"
-                onSubmitEditing={handleNext}
+                editable={!phoneVerified}
+                onSubmitEditing={handleVerifyPhone}
                 className="w-full mt-3 rounded-xl px-4 py-3.5 text-lg text-center"
                 style={{
                   ...colors.bgInput,
                   borderWidth: 1,
-                  borderColor: colors.inputBorder,
+                  borderColor: phoneError
+                    ? '#ef4444'
+                    : phoneVerified
+                      ? colors.accent
+                      : colors.inputBorder,
                   color: colors.textPrimary,
+                  opacity: phoneVerified ? 0.6 : 1,
                 }}
               />
+
+              {/* Verify button — shown before verification */}
+              {!phoneVerified && (
+                <Pressable
+                  onPress={handleVerifyPhone}
+                  disabled={phoneVerifying}
+                  className="w-full mt-3 rounded-xl py-3 items-center active:opacity-80"
+                  style={{
+                    borderWidth: 1,
+                    borderColor: colors.accent,
+                    opacity: phoneVerifying ? 0.6 : 1,
+                  }}
+                >
+                  <Text className="font-semibold text-sm" style={{ color: colors.accent }}>
+                    {phoneVerifying ? 'Verifying...' : 'Verify Phone Number'}
+                  </Text>
+                </Pressable>
+              )}
+
+              {/* Status message */}
+              {phoneError && (
+                <Text className="text-sm text-center mt-2" style={{ color: '#ef4444' }}>
+                  {phoneError}
+                </Text>
+              )}
+              {phoneVerified && (
+                <View className="flex-row items-center justify-center mt-2">
+                  <View
+                    className="w-2.5 h-2.5 rounded-full mr-2"
+                    style={{ backgroundColor: colors.accent }}
+                  />
+                  <Text className="text-sm font-semibold" style={{ color: colors.accent }}>
+                    Phone number verified
+                  </Text>
+                </View>
+              )}
+
               <Text
                 className="text-xs text-center mt-2"
                 style={{ color: colors.textTertiary }}
               >
-                Your phone number is used to receive push notifications only
+                Friends enter your phone number to send you secrets via push
               </Text>
             </View>
           )}
@@ -261,29 +353,50 @@ export default function OnboardingScreen() {
             ))}
           </View>
 
-          {/* Button */}
-          <Pressable
-            onPress={handleNext}
-            className="w-full rounded-xl py-4 items-center active:opacity-80"
-            style={{
-              backgroundColor: colors.accent,
-              ...(colors.isDark
-                ? {
-                    shadowColor: colors.accent,
-                    shadowOpacity: 0.3,
-                    shadowRadius: 12,
-                    shadowOffset: { width: 0, height: 4 },
-                  }
-                : {}),
-            }}
-          >
-            <Text
-              className="font-bold text-base"
-              style={{ color: colors.accentText }}
-            >
-              {isLastStep ? 'Get Started' : 'Next'}
-            </Text>
-          </Pressable>
+          {/* Navigation buttons */}
+          <View className="w-full flex-row gap-3">
+            {step > 0 && (
+              <Pressable
+                onPress={() => { setDirection('back'); setStep((s) => s - 1); }}
+                className="flex-1 rounded-xl py-4 items-center active:opacity-80"
+                style={{
+                  borderWidth: 1,
+                  borderColor: colors.isDark ? colors.accentBorder : colors.cardBorder,
+                }}
+              >
+                <Text
+                  className="font-bold text-base"
+                  style={{ color: colors.textSecondary }}
+                >
+                  Back
+                </Text>
+              </Pressable>
+            )}
+            {(!isLastStep || phoneVerified) && (
+              <Pressable
+                onPress={handleNext}
+                className="flex-1 rounded-xl py-4 items-center active:opacity-80"
+                style={{
+                  backgroundColor: colors.accent,
+                  ...(colors.isDark
+                    ? {
+                        shadowColor: colors.accent,
+                        shadowOpacity: 0.3,
+                        shadowRadius: 12,
+                        shadowOffset: { width: 0, height: 4 },
+                      }
+                    : {}),
+                }}
+              >
+                <Text
+                  className="font-bold text-base"
+                  style={{ color: colors.accentText }}
+                >
+                  {isLastStep ? 'Get Started' : 'Next'}
+                </Text>
+              </Pressable>
+            )}
+          </View>
 
         </View>
       </View>
