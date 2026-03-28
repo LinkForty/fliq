@@ -6,6 +6,9 @@ let pool: pg.Pool | null = null;
 
 export function getPool(): pg.Pool {
   if (!pool) {
+    if (!process.env.DATABASE_URL && process.env.NODE_ENV === 'production') {
+      throw new Error('DATABASE_URL must be set in production');
+    }
     pool = new Pool({
       connectionString: process.env.DATABASE_URL || 'postgresql://postgres:password@localhost:5432/fliq',
       ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false,
