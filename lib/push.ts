@@ -5,6 +5,7 @@ import { Platform } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { getSettings } from './settings';
 import { generateKey, encrypt, decrypt } from './crypto';
+import { getAuthHeaders } from './auth';
 
 const DEVICE_ID_KEY = '@fliq/device_id';
 const PUSH_TOKEN_KEY = '@fliq/push_token';
@@ -83,9 +84,10 @@ export async function registerDevice(phoneNumber: string): Promise<boolean> {
   const settings = await getSettings();
 
   try {
+    const authHeaders = await getAuthHeaders();
     const res = await fetch(`${getApiBase()}/api/devices`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 'Content-Type': 'application/json', ...authHeaders },
       body: JSON.stringify({
         deviceId,
         phoneNumber,
@@ -119,9 +121,10 @@ export async function sendPushMessage(params: {
     // Encrypt the message content — server only stores ciphertext
     const key = generateKey();
     const encrypted = encrypt(params.content, key);
+    const authHeaders = await getAuthHeaders();
     const res = await fetch(`${getApiBase()}/api/messages`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 'Content-Type': 'application/json', ...authHeaders },
       body: JSON.stringify({
         senderDeviceId: deviceId,
         senderName: params.senderName,
@@ -162,7 +165,10 @@ export async function fetchPushMessage(
   createdAt: string;
 } | null> {
   try {
-    const res = await fetch(`${getApiBase()}/api/messages/${messageId}`);
+    const authHeaders = await getAuthHeaders();
+    const res = await fetch(`${getApiBase()}/api/messages/${messageId}`, {
+      headers: { ...authHeaders },
+    });
     if (!res.ok) return null;
     const data = await res.json();
 

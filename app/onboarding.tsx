@@ -21,6 +21,7 @@ import { getSettings, saveSettings } from '@/lib/settings';
 import { trackEvent } from '@/lib/sdk';
 import { registerForPushNotifications, registerDevice } from '@/lib/push';
 import { validatePhoneNumber } from '@/lib/phone-validation';
+import { verifyOtp } from '@/lib/auth';
 import { useTheme } from '@/lib/theme';
 
 const PUSH_STEP = 2;
@@ -67,6 +68,9 @@ export default function OnboardingScreen() {
   const [phoneVerified, setPhoneVerified] = useState(false);
   const [phoneVerifying, setPhoneVerifying] = useState(false);
   const [phoneError, setPhoneError] = useState<string | null>(null);
+  const [otpSent, setOtpSent] = useState(false);
+  const [otpCode, setOtpCode] = useState('');
+  const [otpVerifying, setOtpVerifying] = useState(false);
   const [direction, setDirection] = useState<'forward' | 'back'>('forward');
   const nameInputRef = useRef<TextInput>(null);
 
@@ -108,16 +112,41 @@ export default function OnboardingScreen() {
 
     const result = await validatePhoneNumber(phone.trim());
 
-    if (result.valid) {
-      setPhone(result.formatted);
-      setPhoneVerified(true);
-      setPhoneError(null);
-    } else {
+    if (!result.valid) {
       setPhoneError(result.error || 'Invalid phone number.');
-      setPhoneVerified(false);
+      setPhoneVerifying(false);
+      return;
     }
 
-    setPhoneVerifying(false);
+    setPhone(result.formatted);
+
+    if (result.needsOtp) {
+      // OTP sent — show code entry
+      setOtpSent(true);
+      setPhoneVerifying(false);
+    } else {
+      // Already verified (cached) — token saved automatically
+      setPhoneVerified(true);
+      setPhoneVerifying(false);
+    }
+  }
+
+  async function handleVerifyOtp() {
+    if (otpVerifying || !otpCode.trim()) return;
+
+    setOtpVerifying(true);
+    setPhoneError(null);
+
+    const result = await verifyOtp(phone.trim(), otpCode.trim());
+
+    if (result.error) {
+      setPhoneError(result.error);
+      setOtpVerifying(false);
+      return;
+    }
+
+    setPhoneVerified(true);
+    setOtpVerifying(false);
   }
 
   async function handleNext() {
@@ -250,14 +279,14 @@ export default function OnboardingScreen() {
                 autoFocus
                 autoCapitalize="words"
                 returnKeyType="next"
-                editable={!phoneVerified}
+                editable={!phoneVerified && !otpSent}
                 className="w-full rounded-xl px-4 py-3.5 text-lg text-center"
                 style={{
                   ...colors.bgInput,
                   borderWidth: 1,
                   borderColor: colors.inputBorder,
                   color: colors.textPrimary,
-                  opacity: phoneVerified ? 0.6 : 1,
+                  opacity: phoneVerified || otpSent ? 0.6 : 1,
                 }}
               />
               <TextInput
@@ -271,7 +300,7 @@ export default function OnboardingScreen() {
                 placeholderTextColor={colors.inputPlaceholder}
                 keyboardType="phone-pad"
                 returnKeyType="done"
-                editable={!phoneVerified}
+                editable={!phoneVerified && !otpSent}
                 onSubmitEditing={handleVerifyPhone}
                 className="w-full mt-3 rounded-xl px-4 py-3.5 text-lg text-center"
                 style={{
@@ -283,12 +312,59 @@ export default function OnboardingScreen() {
                       ? colors.accent
                       : colors.inputBorder,
                   color: colors.textPrimary,
-                  opacity: phoneVerified ? 0.6 : 1,
+                  opacity: phoneVerified || otpSent ? 0.6 : 1,
                 }}
               />
 
-              {/* Verify button — shown before verification */}
-              {!phoneVerified && (
+              {/* OTP code input — shown after OTP is sent */}
+              {otpSent && !phoneVerified && (
+                <>
+                  <TextInput
+                    value={otpCode}
+                    onChangeText={(text) => {
+                      setOtpCode(text);
+                      setPhoneError(null);
+                    }}
+                    placeholder="Enter verification code"
+                    placeholderTextColor={colors.inputPlaceholder}
+                    keyboardType="number-pad"
+                    returnKeyType="done"
+                    autoFocus
+                    maxLength={10}
+                    onSubmitEditing={handleVerifyOtp}
+                    className="w-full mt-3 rounded-xl px-4 py-3.5 text-lg text-center tracking-widest"
+                    style={{
+                      ...colors.bgInput,
+                      borderWidth: 1,
+                      borderColor: phoneError ? '#ef4444' : colors.inputBorder,
+                      color: colors.textPrimary,
+                    }}
+                  />
+                  <Pressable
+                    onPress={handleVerifyOtp}
+                    disabled={otpVerifying || !otpCode.trim()}
+                    className="w-full mt-3 rounded-xl py-3 items-center active:opacity-80"
+                    style={{
+                      borderWidth: 1,
+                      borderColor: colors.accent,
+                      opacity: otpVerifying || !otpCode.trim() ? 0.6 : 1,
+                    }}
+                  >
+                    <Text className="font-semibold text-sm" style={{ color: colors.accent }}>
+                      {otpVerifying ? 'Verifying...' : 'Confirm Code'}
+                    </Text>
+                  </Pressable>
+                  <Text
+                    className="text-xs text-center mt-2"
+                    style={{ color: colors.textTertiary }}
+                  >
+                    A verification code was sent to {phone}
+                  </Text>
+                </>
+              )}
+
+              {/* Verify button — shown before OTP is sent */}
+              {!phoneVerified && !otpSent && (
                 <Pressable
                   onPress={handleVerifyPhone}
                   disabled={phoneVerifying}
@@ -300,7 +376,7 @@ export default function OnboardingScreen() {
                   }}
                 >
                   <Text className="font-semibold text-sm" style={{ color: colors.accent }}>
-                    {phoneVerifying ? 'Verifying...' : 'Verify Phone Number'}
+                    {phoneVerifying ? 'Sending code...' : 'Verify Phone Number'}
                   </Text>
                 </Pressable>
               )}
