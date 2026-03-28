@@ -8,7 +8,7 @@ export function DownloadCTA() {
           Ready to send your first secret?
         </h2>
         <p className="text-gray-300 mb-10 text-lg">
-          Download Fliq and start sharing secrets with a flick.
+          Download Fliq'd and start sharing secrets with a flick.
         </p>
         <AppStoreBadges />
       </div>

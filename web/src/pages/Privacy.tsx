@@ -14,7 +14,7 @@ export function Privacy() {
             <section>
               <h2 className="text-xl font-bold text-white mb-3">Overview</h2>
               <p>
-                Fliq is a secret message app built by SiteTransition LLC. We are committed to
+                Fliq'd is a secret message app built by SiteTransition LLC. We are committed to
                 protecting your privacy. This policy explains what data we collect, how we use it,
                 and your rights.
               </p>
@@ -26,7 +26,7 @@ export function Privacy() {
                 All messages are encrypted on the sender's device using AES-256-GCM before
                 leaving their phone. The decryption key is never transmitted to or stored on
                 our servers — it exists only in the shareable link or push notification
-                delivered to the recipient. This means Fliq operates on a zero-knowledge
+                delivered to the recipient. This means Fliq'd operates on a zero-knowledge
                 basis: we cannot read your messages, even if compelled to.
               </p>
             </section>
@@ -74,7 +74,7 @@ export function Privacy() {
             <section>
               <h2 className="text-xl font-bold text-white mb-3">Analytics</h2>
               <p>
-                Fliq optionally integrates with the LinkForty SDK for analytics. This integration
+                Fliq'd optionally integrates with the LinkForty SDK for analytics. This integration
                 is opt-in — you must manually connect it from the Settings screen by providing
                 your own API key. When connected, anonymous usage events (e.g., app opened,
                 message created) are sent to LinkForty. No message content is ever included

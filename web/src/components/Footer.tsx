@@ -7,8 +7,8 @@ export function Footer() {
         <div className="flex flex-col md:flex-row justify-between items-center gap-10">
           <div className="flex flex-col gap-4">
             <div className="flex items-center gap-3">
-              <img src="/fliq-logo.png" alt="Fliq" className="size-6 rounded" />
-              <h2 className="text-xl font-bold tracking-tight text-white">Fliq</h2>
+              <img src="/fliq-logo.png" alt="Fliq'd" className="size-6 rounded" />
+              <h2 className="text-xl font-bold tracking-tight text-white">Fliq'd</h2>
             </div>
             <p className="text-slate-500 text-sm font-light">&copy; {new Date().getFullYear()} SiteTransition LLC. All rights reserved.</p>
           </div>

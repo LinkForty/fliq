@@ -37,7 +37,7 @@ export function ShareFallback() {
             You've received a secret!
           </h1>
           <p className="text-slate-400 text-lg mb-10 leading-relaxed">
-            Someone sent you an encrypted message on Fliq. Download the app to decrypt and reveal it.
+            Someone sent you an encrypted message on Fliq'd. Download the app to decrypt and reveal it.
           </p>
           <div className="flex justify-center">
             <AppStoreBadges />
@@ -47,7 +47,7 @@ export function ShareFallback() {
               onClick={handleOpenInApp}
               className="mt-8 text-primary hover:brightness-110 font-semibold text-sm transition-all"
             >
-              I already have Fliq — open it
+              I already have Fliq'd — open it
             </button>
           )}
         </div>

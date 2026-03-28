@@ -14,7 +14,7 @@ export function Terms() {
             <section>
               <h2 className="text-xl font-bold text-white mb-3">Acceptance of Terms</h2>
               <p>
-                By downloading, installing, or using Fliq ("the App"), you agree to these Terms
+                By downloading, installing, or using Fliq'd ("the App"), you agree to these Terms
                 of Service. If you do not agree, do not use the App.
               </p>
             </section>
@@ -22,7 +22,7 @@ export function Terms() {
             <section>
               <h2 className="text-xl font-bold text-white mb-3">Description of Service</h2>
               <p>
-                Fliq is an ephemeral messaging app that allows users to send secret messages that
+                Fliq'd is an ephemeral messaging app that allows users to send secret messages that
                 recipients reveal through physical gestures. Messages can be delivered via push
                 notification or shareable link.
               </p>
@@ -30,7 +30,7 @@ export function Terms() {
 
             <section>
               <h2 className="text-xl font-bold text-white mb-3">Acceptable Use</h2>
-              <p>You agree not to use Fliq to:</p>
+              <p>You agree not to use Fliq'd to:</p>
               <ul className="list-disc pl-6 mt-2 space-y-1">
                 <li>Send content that is illegal, threatening, harassing, or abusive</li>
                 <li>Distribute malware or harmful content</li>
@@ -46,7 +46,7 @@ export function Terms() {
             <section>
               <h2 className="text-xl font-bold text-white mb-3">Ephemeral Messaging</h2>
               <p>
-                Fliq is designed around ephemeral messaging. Push-delivered messages are stored
+                Fliq'd is designed around ephemeral messaging. Push-delivered messages are stored
                 in encrypted form on our server and are deleted once opened or after 24 hours.
                 Link-shared messages are deleted from our servers after delivery when the
                 LinkForty SDK is connected. Messages on your device can be configured to
@@ -55,7 +55,7 @@ export function Terms() {
               <p className="mt-2">
                 <strong>We do not guarantee message delivery or persistence.</strong> Messages may
                 fail to deliver due to network issues, expired push tokens, or other technical
-                factors. Do not rely on Fliq for critical communications.
+                factors. Do not rely on Fliq'd for critical communications.
               </p>
             </section>
 

@@ -48,7 +48,7 @@ export async function registerForPushNotifications(): Promise<
   }
 
   if (finalStatus !== 'granted') {
-    return { error: 'Notification permissions were denied. Go to Settings > Fliq > Notifications to enable them.' };
+    return { error: 'Notification permissions were denied. Go to Settings > Fliq\'d > Notifications to enable them.' };
   }
 
   // Android notification channel
@@ -113,6 +113,7 @@ export async function sendPushMessage(params: {
   senderName: string;
 }): Promise<{ messageId: string; expiresAt: string } | { error: string }> {
   const deviceId = await getDeviceId();
+  const settings = await getSettings();
 
   try {
     // Encrypt the message content — server only stores ciphertext
@@ -124,6 +125,7 @@ export async function sendPushMessage(params: {
       body: JSON.stringify({
         senderDeviceId: deviceId,
         senderName: params.senderName,
+        senderPhone: settings.phoneNumber || undefined,
         recipientPhone: params.recipientPhone,
         encryptedContent: encrypted.e,
         contentNonce: encrypted.n,
@@ -154,6 +156,7 @@ export async function fetchPushMessage(
   encryptionKey?: string,
 ): Promise<{
   senderName: string;
+  senderPhone?: string;
   content: string;
   revealStyle: string;
   createdAt: string;
@@ -169,6 +172,7 @@ export async function fetchPushMessage(
       if (!plaintext) return null;
       return {
         senderName: data.senderName,
+        senderPhone: data.senderPhone,
         content: plaintext,
         revealStyle: data.revealStyle,
         createdAt: data.createdAt,

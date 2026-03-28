@@ -11,10 +11,11 @@ import {
   Platform,
 } from 'react-native';
 import { useRouter } from 'expo-router';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import * as WebBrowser from 'expo-web-browser';
 import { getSettings, saveSettings, clearSettings } from '@/lib/settings';
 import { initializeSDK, isConnected, resetSDK } from '@/lib/sdk';
-import { clearMessages } from '@/lib/storage';
+import { clearMessages, clearRecentRecipients } from '@/lib/storage';
 import { registerForPushNotifications, registerDevice } from '@/lib/push';
 import { useTheme } from '@/lib/theme';
 import type { ThemePreference } from '@/lib/settings';
@@ -29,6 +30,7 @@ const THEME_OPTIONS: { value: ThemePreference; label: string }[] = [
 
 export default function SettingsScreen() {
   const router = useRouter();
+  const insets = useSafeAreaInsets();
   const { colors, preference, setTheme } = useTheme();
   const [apiKey, setApiKey] = useState('');
   const [baseUrl, setBaseUrl] = useState(DEFAULT_BASE_URL);
@@ -36,6 +38,7 @@ export default function SettingsScreen() {
   const [loading, setLoading] = useState(false);
   const [autoDelete, setAutoDelete] = useState(true);
   const [autoDeleteSend, setAutoDeleteSend] = useState(true);
+  const [saveRecentNumbers, setSaveRecentNumbers] = useState(true);
   const [phoneNumber, setPhoneNumber] = useState('');
   const [pushRegistered, setPushRegistered] = useState(false);
 
@@ -49,6 +52,7 @@ export default function SettingsScreen() {
     setBaseUrl(settings.baseUrl);
     setAutoDelete(settings.autoDeleteAfterRead);
     setAutoDeleteSend(settings.autoDeleteAfterSend);
+    setSaveRecentNumbers(settings.saveRecentNumbers);
     if (settings.phoneNumber) setPhoneNumber(settings.phoneNumber);
     setPushRegistered(settings.pushRegistered === true);
     setConnected(isConnected());
@@ -87,27 +91,28 @@ export default function SettingsScreen() {
     setConnected(false);
   }
 
-  async function handleUpdatePhone() {
-    if (!phoneNumber.trim() || phoneNumber.trim().length < 7) {
-      Alert.alert('Invalid Phone', 'Please enter a valid phone number.');
+  async function handleEnablePush() {
+    if (!phoneNumber) {
+      Alert.alert('No Phone Number', 'Set up your phone number during onboarding first.');
       return;
     }
 
-    const settings = await getSettings();
-    await saveSettings({ ...settings, phoneNumber: phoneNumber.trim() });
-
-    const result = await registerForPushNotifications();
-    if (result.token) {
-      const registered = await registerDevice(phoneNumber.trim());
-      if (registered) {
-        await saveSettings({ ...(await getSettings()), pushRegistered: true });
-        setPushRegistered(true);
-        Alert.alert('Updated', 'Your phone number and push notifications are active.');
+    try {
+      const result = await registerForPushNotifications();
+      if (result.token) {
+        const registered = await registerDevice(phoneNumber);
+        if (registered) {
+          await saveSettings({ ...(await getSettings()), pushRegistered: true });
+          setPushRegistered(true);
+          Alert.alert('Enabled', 'Push notifications are now active.');
+        } else {
+          Alert.alert('Registration Failed', 'Could not register with the server. Push notifications may not work.');
+        }
       } else {
-        Alert.alert('Registration Failed', 'Could not register with the server. Push notifications may not work.');
+        Alert.alert('Notifications Unavailable', result.error);
       }
-    } else {
-      Alert.alert('Notifications Unavailable', result.error);
+    } catch (error) {
+      Alert.alert('Error', `Push setup failed: ${error instanceof Error ? error.message : String(error)}`);
     }
   }
 
@@ -119,7 +124,7 @@ export default function SettingsScreen() {
       <ScrollView
         className="flex-1"
         style={{ backgroundColor: colors.bg }}
-        contentContainerClassName="p-5"
+        contentContainerStyle={{ padding: 20, paddingBottom: 20 + insets.bottom }}
         keyboardShouldPersistTaps="handled"
       >
         {/* Push Notifications */}
@@ -152,32 +157,26 @@ export default function SettingsScreen() {
           >
             Your Phone Number
           </Text>
-          <TextInput
-            value={phoneNumber}
-            onChangeText={setPhoneNumber}
-            placeholder="+1 (555) 123-4567"
-            placeholderTextColor={colors.inputPlaceholder}
-            keyboardType="phone-pad"
-            className="rounded-xl px-4 py-3 text-base mb-3"
-            style={{
-              ...colors.bgInput,
-              borderWidth: 1,
-              borderColor: colors.inputBorder,
-              color: colors.textPrimary,
-            }}
-          />
-          <Pressable
-            onPress={handleUpdatePhone}
-            className="rounded-xl py-3 items-center"
-            style={{
-              borderWidth: 1,
-              borderColor: colors.accent,
-            }}
+          <Text
+            className="text-base mb-3"
+            style={{ color: phoneNumber ? colors.textPrimary : colors.textTertiary }}
           >
-            <Text className="font-semibold text-sm" style={{ color: colors.accent }}>
-              {pushRegistered ? 'Update Phone Number' : 'Save & Enable Push'}
-            </Text>
-          </Pressable>
+            {phoneNumber || 'Not set'}
+          </Text>
+          {!pushRegistered && (
+            <Pressable
+              onPress={handleEnablePush}
+              className="rounded-xl py-3 items-center"
+              style={{
+                borderWidth: 1,
+                borderColor: colors.accent,
+              }}
+            >
+              <Text className="font-semibold text-sm" style={{ color: colors.accent }}>
+                Enable Push Notifications
+              </Text>
+            </Pressable>
+          )}
         </View>
         <Text
           className="text-xs mb-6"
@@ -281,6 +280,34 @@ export default function SettingsScreen() {
               }}
               trackColor={{ false: colors.trackOff, true: colors.trackOn }}
               thumbColor={autoDeleteSend ? colors.thumbOn : colors.thumbOff}
+            />
+          </View>
+
+          {/* Save recent numbers */}
+          <View
+            className="flex-row items-center justify-between p-4 rounded-xl mt-3"
+            style={{ ...colors.bgCard, borderWidth: 1, borderColor: colors.cardBorder }}
+          >
+            <View className="flex-1 mr-4">
+              <Text className="font-semibold" style={{ color: colors.textPrimary }}>
+                Save recently used numbers
+              </Text>
+              <Text className="text-xs mt-0.5" style={{ color: colors.textTertiary }}>
+                Remember phone numbers you've sent secrets to
+              </Text>
+            </View>
+            <Switch
+              value={saveRecentNumbers}
+              onValueChange={async (value) => {
+                setSaveRecentNumbers(value);
+                const settings = await getSettings();
+                await saveSettings({ ...settings, saveRecentNumbers: value });
+                if (!value) {
+                  await clearRecentRecipients();
+                }
+              }}
+              trackColor={{ false: colors.trackOff, true: colors.trackOn }}
+              thumbColor={saveRecentNumbers ? colors.thumbOn : colors.thumbOff}
             />
           </View>
         </View>
@@ -469,6 +496,35 @@ export default function SettingsScreen() {
           <Pressable
             onPress={() =>
               Alert.alert(
+                'Clear Recent Recipients',
+                'This will remove all stored phone numbers from your recent recipients list.',
+                [
+                  { text: 'Cancel', style: 'cancel' },
+                  {
+                    text: 'Clear',
+                    style: 'destructive',
+                    onPress: async () => {
+                      await clearRecentRecipients();
+                      Alert.alert('Done', 'Recent recipients have been cleared.');
+                    },
+                  },
+                ],
+              )
+            }
+            className="mt-4 rounded-xl py-4 items-center"
+            style={{ borderWidth: 2, borderColor: '#ef4444' }}
+          >
+            <Text className="font-semibold text-base" style={{ color: '#ef4444' }}>
+              Clear Recent Recipients
+            </Text>
+          </Pressable>
+          <Text className="text-xs mt-2 text-center" style={{ color: colors.textTertiary }}>
+            Removes stored phone numbers from the recent list
+          </Text>
+
+          <Pressable
+            onPress={() =>
+              Alert.alert(
                 'Reset App Data',
                 'This will erase all messages, settings, and app data. You will need to go through onboarding again.',
                 [
@@ -479,6 +535,7 @@ export default function SettingsScreen() {
                     onPress: async () => {
                       resetSDK();
                       await clearMessages();
+                      await clearRecentRecipients();
                       await clearSettings();
                       router.replace('/onboarding');
                     },

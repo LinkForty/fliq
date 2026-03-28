@@ -16,17 +16,18 @@ export type FliqSettings = {
   pushRegistered?: boolean;
   onboardingComplete?: boolean;
   theme?: ThemePreference;
+  saveRecentNumbers: boolean;
 };
 
 export async function getSettings(): Promise<FliqSettings> {
   const raw = await AsyncStorage.getItem(SETTINGS_KEY);
-  if (!raw) return { baseUrl: DEFAULT_BASE_URL, autoDeleteAfterRead: true, autoDeleteAfterSend: true };
+  if (!raw) return { baseUrl: DEFAULT_BASE_URL, autoDeleteAfterRead: true, autoDeleteAfterSend: true, saveRecentNumbers: true };
   const parsed = JSON.parse(raw) as Partial<FliqSettings>;
   // Migrate old base URLs to the current API endpoint
   if (parsed.baseUrl && DEPRECATED_URL_PATTERNS.some((p) => parsed.baseUrl!.includes(p))) {
     parsed.baseUrl = DEFAULT_BASE_URL;
   }
-  return { baseUrl: DEFAULT_BASE_URL, autoDeleteAfterRead: true, autoDeleteAfterSend: true, ...parsed };
+  return { baseUrl: DEFAULT_BASE_URL, autoDeleteAfterRead: true, autoDeleteAfterSend: true, saveRecentNumbers: true, ...parsed };
 }
 
 export async function saveSettings(settings: FliqSettings): Promise<void> {

@@ -1,5 +1,6 @@
 import { useCallback, useState } from 'react';
 import { View, Text, FlatList, Pressable, Alert } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRouter, useFocusEffect } from 'expo-router';
 import Swipeable from 'react-native-gesture-handler/ReanimatedSwipeable';
 import { getMessages, deleteMessage } from '@/lib/storage';
@@ -12,6 +13,7 @@ import type { Message } from '@/lib/types';
 export default function HomeScreen() {
   const router = useRouter();
   const { colors } = useTheme();
+  const insets = useSafeAreaInsets();
   const [messages, setMessages] = useState<Message[]>([]);
 
   useFocusEffect(
@@ -71,7 +73,7 @@ export default function HomeScreen() {
         <FlatList
           data={messages}
           keyExtractor={(item) => item.id}
-          contentContainerStyle={{ paddingHorizontal: 16, paddingTop: 8, paddingBottom: 16 }}
+          contentContainerStyle={{ paddingHorizontal: 16, paddingTop: 8, paddingBottom: insets.bottom + 80 }}
           renderItem={({ item }) => (
             <SwipeableMessageCard
               message={item}
@@ -93,7 +95,7 @@ export default function HomeScreen() {
         onPress={() => router.push('/create')}
         style={{
           position: 'absolute',
-          bottom: 24,
+          bottom: insets.bottom + 24,
           right: 24,
           width: 56,
           height: 56,

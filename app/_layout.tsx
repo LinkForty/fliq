@@ -14,7 +14,7 @@ import { initializeSDK, onDeepLink, onDeferredDeepLink, trackEvent } from '@/lib
 import { handleSDKDeepLink, handleSchemeDeepLink, handleUniversalLinkDeepLink } from '@/lib/deep-link-router';
 import { isOnboardingComplete } from '@/lib/settings';
 import { fetchPushMessage } from '@/lib/push';
-import { saveMessage } from '@/lib/storage';
+import { saveMessage, hasMessageWithPushId, findMessageByPushId } from '@/lib/storage';
 import { ThemeProvider, useTheme } from '@/lib/theme';
 import type { Message, RevealStyle } from '@/lib/types';
 
@@ -76,7 +76,7 @@ function AppNavigator() {
         <Stack.Screen
           name="(tabs)"
           options={{
-            title: 'Fliq',
+            title: "Fliq'd",
             headerRight: () => (
               <Pressable onPress={() => router.push('/settings')} hitSlop={8}>
                 <Text style={{ fontSize: 22, color: colors.textSecondary }}>{'\u2699'}</Text>
@@ -152,42 +152,83 @@ export default function RootLayout() {
     }
   }, [loaded]);
 
-  // Handle push notification taps — fetch message from server and navigate to reveal
+  // Fetch a push message from the server and save it locally (deduplicated by pushMessageId).
+  // Returns the local message if saved, or the existing one if already processed.
+  async function processNotificationData(data: Record<string, unknown>): Promise<Message | null> {
+    if (data?.type !== 'fliq_message' || !data?.messageId) return null;
+
+    const pushMessageId = data.messageId as string;
+
+    // Already processed — return existing message
+    const existing = await findMessageByPushId(pushMessageId);
+    if (existing) return existing;
+
+    const msg = await fetchPushMessage(pushMessageId, data.contentKey as string | undefined);
+    if (!msg) return null;
+
+    const id = Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
+    const senderPhone = msg.senderPhone || (data.senderPhone as string | undefined);
+    const message: Message = {
+      id,
+      pushMessageId,
+      content: msg.content,
+      revealStyle: (msg.revealStyle as RevealStyle) || 'flick',
+      senderName: msg.senderName,
+      senderPhone,
+      createdAt: msg.createdAt,
+      isRead: false,
+      direction: 'received',
+    };
+    await saveMessage(message);
+    trackEvent('message_received', { revealStyle: message.revealStyle, source: 'push' });
+    return message;
+  }
+
+  // Handle push notifications — foreground receipt, tap response, and pending on app open
   useEffect(() => {
-    notificationResponseListener.current =
-      Notifications.addNotificationResponseReceivedListener(async (response) => {
-        const data = response.notification.request.content.data;
+    // When the user taps a notification — navigate to the message
+    async function handleNotificationResponse(response: Notifications.NotificationResponse) {
+      const data = response.notification.request.content.data;
+      const message = await processNotificationData(data);
+      if (message) {
+        try {
+          router.push(`/reveal/${message.id}`);
+        } catch {
+          // Navigation context not ready — message is saved and will appear in inbox
+        }
+      }
+    }
+
+    // When a notification is received while the app is in the foreground — auto-save the message
+    const receivedListener = Notifications.addNotificationReceivedListener(async (notification) => {
+      const data = notification.request.content.data;
+      await processNotificationData(data);
+    });
+
+    // Process any notifications still in the tray when the app opens (received in background, not tapped)
+    Notifications.getPresentedNotificationsAsync().then(async (notifications) => {
+      for (const notification of notifications) {
+        const data = notification.request.content.data;
         if (data?.type === 'fliq_message' && data?.messageId) {
-          const msg = await fetchPushMessage(
-            data.messageId as string,
-            data.contentKey as string | undefined,
-          );
-          if (msg) {
-            const id = Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
-            const message: Message = {
-              id,
-              content: msg.content,
-              revealStyle: (msg.revealStyle as RevealStyle) || 'flick',
-              senderName: msg.senderName,
-              createdAt: msg.createdAt,
-              isRead: false,
-              direction: 'received',
-            };
-            await saveMessage(message);
-            trackEvent('message_received', {
-              revealStyle: message.revealStyle,
-              source: 'push',
-            });
-            try {
-              router.push(`/reveal/${id}`);
-            } catch {
-              // Navigation context not ready — message is saved and will appear in inbox
-            }
+          const alreadyProcessed = await hasMessageWithPushId(data.messageId as string);
+          if (!alreadyProcessed) {
+            await processNotificationData(data);
           }
         }
-      });
+      }
+    });
+
+    // Handle cold start — notification that launched the app
+    Notifications.getLastNotificationResponseAsync().then((response) => {
+      if (response) handleNotificationResponse(response);
+    });
+
+    // Handle warm start — notification tapped while app is running
+    notificationResponseListener.current =
+      Notifications.addNotificationResponseReceivedListener(handleNotificationResponse);
 
     return () => {
+      receivedListener.remove();
       notificationResponseListener.current?.remove();
     };
   }, []);

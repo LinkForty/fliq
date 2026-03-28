@@ -2,7 +2,7 @@ const REASONS = [
   {
     icon: 'lock',
     title: 'End-to-End Privacy',
-    description: 'Messages are encrypted on your device with AES-256-GCM before anything leaves your phone. Not even Fliq can read them.',
+    description: "Messages are encrypted on your device with AES-256-GCM before anything leaves your phone. Not even Fliq'd can read them.",
   },
   {
     icon: 'cloud_off',
@@ -27,7 +27,7 @@ export function WhyChooseFliq() {
       <div className="max-w-7xl mx-auto px-6">
         <div className="text-center mb-16">
           <h2 className="text-primary font-bold tracking-widest text-sm uppercase mb-4">The Standard</h2>
-          <h3 className="text-4xl font-bold text-white">Why choose Fliq?</h3>
+          <h3 className="text-4xl font-bold text-white">Why choose Fliq'd?</h3>
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
           {REASONS.map((reason) => (

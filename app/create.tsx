@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useLayoutEffect, useRef } from 'react';
 import {
   View,
   Text,
@@ -10,8 +10,10 @@ import {
   KeyboardAvoidingView,
   Platform,
 } from 'react-native';
-import { router } from 'expo-router';
-import { saveMessage } from '@/lib/storage';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { router, useLocalSearchParams, useNavigation } from 'expo-router';
+import { saveMessage, getRecentRecipients, saveRecentRecipient } from '@/lib/storage';
+import type { RecentRecipient } from '@/lib/storage';
 import { getSettings } from '@/lib/settings';
 import { isPayloadTooLarge } from '@/lib/deeplink';
 import { createShareLink, isConnected, trackEvent } from '@/lib/sdk';
@@ -27,18 +29,37 @@ type SendMode = 'link' | 'push';
 
 export default function CreateScreen() {
   const { colors } = useTheme();
+  const insets = useSafeAreaInsets();
+  const scrollRef = useRef<ScrollView>(null);
+  const { replyTo, replyPhone } = useLocalSearchParams<{ replyTo?: string; replyPhone?: string }>();
   const [content, setContent] = useState('');
   const [senderName, setSenderName] = useState('');
   const [revealStyle, setRevealStyle] = useState<RevealStyle>('flick');
   const [sendMode, setSendMode] = useState<SendMode>('push');
-  const [recipientPhone, setRecipientPhone] = useState('');
+  const [recipientPhone, setRecipientPhone] = useState(replyPhone || '');
   const [sharing, setSharing] = useState(false);
+  const [recentRecipients, setRecentRecipients] = useState<RecentRecipient[]>([]);
+  const [showRecents, setShowRecents] = useState(false);
+  const [saveRecentsEnabled, setSaveRecentsEnabled] = useState(true);
+
+  const navigation = useNavigation();
 
   useEffect(() => {
     getSettings().then((settings) => {
       if (settings.userName) setSenderName(settings.userName);
+      setSaveRecentsEnabled(settings.saveRecentNumbers);
+      if (settings.saveRecentNumbers) {
+        getRecentRecipients().then(setRecentRecipients);
+      }
     });
   }, []);
+
+  // Update header title when replying to someone
+  useLayoutEffect(() => {
+    if (replyTo) {
+      navigation.setOptions({ title: `Reply to ${replyTo}` });
+    }
+  }, [replyTo, navigation]);
 
   const canShare =
     content.trim().length > 0 &&
@@ -85,10 +106,10 @@ export default function CreateScreen() {
     });
 
     if ('error' in result) {
-      if (result.error.includes('No Fliq device')) {
+      if (result.error.includes("No Fliq'd device")) {
         Alert.alert(
-          'Not on Fliq',
-          'That phone number isn\'t registered on Fliq yet. Share a link instead?',
+          "Not on Fliq'd",
+          "That phone number isn't registered on Fliq'd yet. Share a link instead?",
           [
             { text: 'Cancel', style: 'cancel' },
             { text: 'Share Link', onPress: () => setSendMode('link') },
@@ -118,6 +139,11 @@ export default function CreateScreen() {
         direction: 'sent',
       };
       await saveMessage(message);
+    }
+
+    // Save to recent recipients (if enabled)
+    if (saveRecentsEnabled) {
+      await saveRecentRecipient(recipientPhone.trim());
     }
 
     Alert.alert('Sent', 'Your secret was delivered via push notification.', [
@@ -156,10 +182,9 @@ export default function CreateScreen() {
     }
 
     await Share.share(
-      {
-        message: `I sent you a secret! \u{1F92B}\n${url}`,
-        url,
-      },
+      Platform.OS === 'ios'
+        ? { url }
+        : { message: `I sent you a secret! \u{1F92B}\n${url}` },
       {
         subject: 'I sent you a secret!',
       },
@@ -176,9 +201,10 @@ export default function CreateScreen() {
       style={{ flex: 1 }}
     >
       <ScrollView
+        ref={scrollRef}
         className="flex-1"
         style={{ backgroundColor: colors.bg }}
-        contentContainerStyle={{ padding: 20 }}
+        contentContainerStyle={{ padding: 20, paddingBottom: 20 + insets.bottom }}
         keyboardShouldPersistTaps="handled"
       >
         {/* From name */}
@@ -345,7 +371,18 @@ export default function CreateScreen() {
             </Text>
             <TextInput
               value={recipientPhone}
-              onChangeText={setRecipientPhone}
+              onChangeText={(text) => {
+                setRecipientPhone(text);
+                setShowRecents(saveRecentsEnabled && text.length === 0 && recentRecipients.length > 0);
+              }}
+              onFocus={() => {
+                if (saveRecentsEnabled && recipientPhone.length === 0 && recentRecipients.length > 0) {
+                  setShowRecents(true);
+                }
+                // Scroll to bottom so recents dropdown and send button are visible above keyboard
+                setTimeout(() => scrollRef.current?.scrollToEnd({ animated: true }), 300);
+              }}
+              onBlur={() => setTimeout(() => setShowRecents(false), 200)}
               placeholder="+1 (555) 123-4567"
               placeholderTextColor={colors.inputPlaceholder}
               keyboardType="phone-pad"
@@ -357,11 +394,46 @@ export default function CreateScreen() {
                 color: colors.textPrimary,
               }}
             />
+
+            {/* Recent recipients dropdown */}
+            {showRecents && (
+              <View
+                className="rounded-xl mb-1 overflow-hidden"
+                style={{
+                  ...colors.bgCard,
+                  borderWidth: 1,
+                  borderColor: colors.cardBorder,
+                }}
+              >
+                <Text
+                  className="text-xs font-bold uppercase tracking-widest px-4 pt-3 pb-2"
+                  style={{ color: colors.textTertiary }}
+                >
+                  Recent
+                </Text>
+                {recentRecipients.map((r) => (
+                  <Pressable
+                    key={r.phone}
+                    onPress={() => {
+                      setRecipientPhone(r.phone);
+                      setShowRecents(false);
+                    }}
+                    className="px-4 py-3 active:opacity-70"
+                    style={{ borderTopWidth: 1, borderTopColor: colors.cardBorder }}
+                  >
+                    <Text className="text-base" style={{ color: colors.textPrimary }}>
+                      {r.phone}
+                    </Text>
+                  </Pressable>
+                ))}
+              </View>
+            )}
+
             <Text
               className="text-xs mb-5"
               style={{ color: colors.textTertiary }}
             >
-              They must have Fliq installed to receive push secrets
+              They must have Fliq'd installed to receive push secrets
             </Text>
           </>
         )}
