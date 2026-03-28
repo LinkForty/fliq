@@ -19,6 +19,7 @@ linkforty-*.json
 google-services.json
 bis-annual-self-classification-report.csv
 eas.json
+STORE_LISTING.md
 *.orig.*
 web-build/
 .claude/
