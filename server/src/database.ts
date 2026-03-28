@@ -53,13 +53,26 @@ export async function initializeDatabase() {
     )
   `);
 
-  // Add content_nonce column if table already exists without it
+  // Add columns if table already exists without them
   await db.query(`
     ALTER TABLE messages ADD COLUMN IF NOT EXISTS content_nonce VARCHAR(100)
+  `);
+  await db.query(`
+    ALTER TABLE messages ADD COLUMN IF NOT EXISTS sender_phone VARCHAR(20)
   `);
 
   await db.query('CREATE INDEX IF NOT EXISTS idx_messages_recipient ON messages(recipient_phone)');
   await db.query('CREATE INDEX IF NOT EXISTS idx_messages_expires ON messages(expires_at)');
+
+  // Verified phones — cache validated phone numbers to avoid repeat API calls
+  await db.query(`
+    CREATE TABLE IF NOT EXISTS verified_phones (
+      id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+      phone_number VARCHAR(20) NOT NULL UNIQUE,
+      formatted VARCHAR(30),
+      verified_at TIMESTAMP DEFAULT NOW()
+    )
+  `);
 
   console.log('Database tables initialized');
 }

@@ -1,5 +1,6 @@
 import { useEffect, useState, useCallback } from 'react';
 import { View, Text, Pressable } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { getMessages, markAsRead, deleteMessage } from '@/lib/storage';
 import { getSettings } from '@/lib/settings';
@@ -17,6 +18,7 @@ export default function RevealScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
   const { colors } = useTheme();
+  const insets = useSafeAreaInsets();
   const [message, setMessage] = useState<Message | null>(null);
   const [revealed, setRevealed] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -96,7 +98,7 @@ export default function RevealScreen() {
   return (
     <View className="flex-1" style={{ backgroundColor: colors.bg }}>
       {/* Header */}
-      <View className="pt-16 pb-4 px-5 items-center">
+      <View className="pb-4 px-5 items-center" style={{ paddingTop: insets.top + 50 }}>
         <Text className="text-lg" style={{ color: colors.textSecondary }}>
           Secret from
         </Text>
@@ -150,7 +152,7 @@ export default function RevealScreen() {
       {revealed && (
         <View className="px-5 pb-10">
           <Pressable
-            onPress={() => router.push('/create')}
+            onPress={() => router.push({ pathname: '/create', params: { replyTo: message.senderName, replyPhone: message.senderPhone || '' } })}
             className="rounded-xl py-4 items-center active:opacity-80"
             style={
               colors.isDark
@@ -174,7 +176,13 @@ export default function RevealScreen() {
             </Text>
           </Pressable>
           <Pressable
-            onPress={() => router.back()}
+            onPress={() => {
+              if (router.canGoBack()) {
+                router.back();
+              } else {
+                router.replace('/');
+              }
+            }}
             className="mt-3 py-3 items-center"
           >
             <Text className="text-sm" style={{ color: colors.textTertiary }}>

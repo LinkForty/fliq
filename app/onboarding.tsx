@@ -36,7 +36,7 @@ const STEPS = [
   {
     emoji: '🫰',
     title: 'Flick to reveal',
-    body: "Give your phone a quick flick to unveil secret messages. It's the Fliq way — physical gestures for digital secrets.",
+    body: "Give your phone a quick flick to unveil secret messages. It's the Fliq'd way — physical gestures for digital secrets.",
   },
   {
     emoji: '🔔',
@@ -46,12 +46,12 @@ const STEPS = [
   {
     emoji: '🔒',
     title: 'Ephemeral by design',
-    body: "Messages vanish after reading. Your secrets are encrypted end-to-end — not even Fliq can read them. Delete messages anytime, or let the app auto-delete.",
+    body: "Messages vanish after reading. Your secrets are encrypted end-to-end — not even Fliq'd can read them. Delete messages anytime, or let the app auto-delete.",
   },
   {
     emoji: '👋',
     title: 'Set up your profile',
-    body: 'Your name is how recipients see who sent the secret. Your phone number is how friends find you on Fliq.',
+    body: "Your name is how recipients see who sent the secret. Your phone number is how friends find you on Fliq'd.",
   },
 ];
 

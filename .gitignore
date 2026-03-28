@@ -12,6 +12,10 @@ dist/
 *.p12
 *.key
 *.mobileprovision
+
+# Firebase service account keys
+fliq-693c1-*.json
+linkforty-*.json
 *.orig.*
 web-build/
 .claude/
