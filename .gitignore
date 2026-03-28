@@ -18,6 +18,7 @@ fliq-693c1-*.json
 linkforty-*.json
 google-services.json
 bis-annual-self-classification-report.csv
+eas.json
 *.orig.*
 web-build/
 .claude/
