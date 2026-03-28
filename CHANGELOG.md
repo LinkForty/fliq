@@ -1,3 +1,10 @@
+# [1.5.0](https://github.com/linkforty/fliq/compare/v1.4.0...v1.5.0) (2026-03-28)
+
+
+### Features
+
+* rebrand to Fliq'd, fix push notifications, and improve Android safe areas ([2fa5ef6](https://github.com/linkforty/fliq/commit/2fa5ef63797397c210d369b7193475ed143b67c2))
+
 # [1.4.0](https://github.com/linkforty/fliq/compare/v1.3.1...v1.4.0) (2026-03-25)
 
 
