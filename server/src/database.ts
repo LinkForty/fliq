@@ -77,7 +77,32 @@ export async function initializeDatabase() {
     )
   `);
 
+  // OTP requests — rate limiting for verification attempts
+  await db.query(`
+    CREATE TABLE IF NOT EXISTS otp_requests (
+      id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+      phone_number VARCHAR(20) NOT NULL,
+      requested_at TIMESTAMP DEFAULT NOW()
+    )
+  `);
+
+  await db.query('CREATE INDEX IF NOT EXISTS idx_otp_requests_phone_time ON otp_requests(phone_number, requested_at)');
+
   console.log('Database tables initialized');
+}
+
+/**
+ * Delete expired and already-fetched messages.
+ */
+/**
+ * Delete stale OTP request records older than 24 hours.
+ */
+export async function cleanupOtpRequests(): Promise<number> {
+  const db = getPool();
+  const result = await db.query(
+    `DELETE FROM otp_requests WHERE requested_at < NOW() - INTERVAL '24 hours'`,
+  );
+  return result.rowCount || 0;
 }
 
 /**

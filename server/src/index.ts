@@ -1,7 +1,8 @@
 import 'dotenv/config';
 import Fastify from 'fastify';
-import { initializeDatabase, cleanupMessages } from './database.js';
+import { initializeDatabase, cleanupMessages, cleanupOtpRequests } from './database.js';
 import { registerRoutes } from './routes.js';
+import { registerAuthRoutes } from './authRoutes.js';
 
 const start = async () => {
   const fastify = Fastify({ logger: true });
@@ -10,7 +11,7 @@ const start = async () => {
   fastify.addHook('onRequest', (_request, reply, done) => {
     reply.header('Access-Control-Allow-Origin', '*');
     reply.header('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
-    reply.header('Access-Control-Allow-Headers', 'Content-Type');
+    reply.header('Access-Control-Allow-Headers', 'Content-Type, Authorization');
     done();
   });
 
@@ -22,7 +23,11 @@ const start = async () => {
   // Initialize database
   await initializeDatabase();
 
+  // Decorate request with phone property for auth middleware
+  fastify.decorateRequest('phone', undefined);
+
   // Register routes
+  await fastify.register(registerAuthRoutes);
   await fastify.register(registerRoutes);
 
   // Error handler
@@ -50,6 +55,10 @@ const start = async () => {
       const count = await cleanupMessages();
       if (count > 0) {
         fastify.log.info(`Cleaned up ${count} expired/fetched message(s)`);
+      }
+      const otpCount = await cleanupOtpRequests();
+      if (otpCount > 0) {
+        fastify.log.info(`Cleaned up ${otpCount} stale OTP request(s)`);
       }
     } catch (err) {
       fastify.log.error(err, 'Message cleanup failed');

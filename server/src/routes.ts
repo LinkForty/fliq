@@ -2,6 +2,8 @@ import { FastifyInstance } from 'fastify';
 import { z } from 'zod';
 import { Expo } from 'expo-server-sdk';
 import { getPool } from './database.js';
+import { authMiddleware } from './auth.js';
+import { normalizePhone } from './utils.js';
 
 const expo = new Expo();
 
@@ -36,18 +38,6 @@ const sendMessageSchema = z.object({
 
 // ── Routes ─────────────────────────────────────────────────────────────
 
-/**
- * Normalize a phone number to digits only with country code.
- * "+1 949-554-4488" → "19495544488"
- * "9495544488" → "19495544488" (assumes US/Canada for 10-digit numbers)
- */
-function normalizePhone(phone: string): string {
-  const digits = phone.replace(/\D/g, '');
-  // 10 digits without country code → prepend 1 (US/Canada)
-  if (digits.length === 10) return '1' + digits;
-  return digits;
-}
-
 export async function registerRoutes(fastify: FastifyInstance) {
 
   // Health check
@@ -58,10 +48,18 @@ export async function registerRoutes(fastify: FastifyInstance) {
   // ── POST /api/devices ───────────────────────────────────────────────
   // Register or update a device's push token and phone number.
   // Only one device per phone number — previous devices with the same number are removed.
-  fastify.post('/api/devices', async (request, reply) => {
+  fastify.post('/api/devices', { preHandler: authMiddleware }, async (request, reply) => {
     const data = registerDeviceSchema.parse(request.body);
     const db = getPool();
     const normalized = normalizePhone(data.phoneNumber);
+
+    // Ensure the authenticated user can only register their own phone number
+    if (request.phone !== normalized) {
+      return reply.status(403).send({
+        error: 'forbidden',
+        message: 'You can only register your own phone number.',
+      });
+    }
 
     // Remove other devices registered with this phone number
     await db.query(
@@ -86,7 +84,7 @@ export async function registerRoutes(fastify: FastifyInstance) {
 
   // ── POST /api/verify-phone ─────────────────────────────────────────
   // Check if a phone number is already verified locally, otherwise call Abstract API.
-  fastify.post('/api/verify-phone', async (request, reply) => {
+  fastify.post('/api/verify-phone', { preHandler: authMiddleware }, async (request, reply) => {
     const schema = z.object({ phone: z.string().min(5).max(30) });
     const { phone } = schema.parse(request.body);
     const normalized = normalizePhone(phone);
@@ -142,7 +140,7 @@ export async function registerRoutes(fastify: FastifyInstance) {
 
   // ── POST /api/messages ──────────────────────────────────────────────
   // Create a message and send a push notification to the recipient.
-  fastify.post('/api/messages', async (request, reply) => {
+  fastify.post('/api/messages', { preHandler: authMiddleware }, async (request, reply) => {
     const data = sendMessageSchema.parse(request.body);
     const db = getPool();
 
@@ -161,13 +159,8 @@ export async function registerRoutes(fastify: FastifyInstance) {
 
     const recipient = deviceResult.rows[0];
 
-    // Look up sender's phone number from their device ID, fall back to client-provided value
-    const senderResult = await db.query(
-      `SELECT phone_number FROM devices WHERE device_id = $1`,
-      [data.senderDeviceId],
-    );
-    const senderPhone = senderResult.rows[0]?.phone_number
-      || (data.senderPhone ? normalizePhone(data.senderPhone) : null);
+    // Use the authenticated phone as the authoritative sender
+    const senderPhone = request.phone || (data.senderPhone ? normalizePhone(data.senderPhone) : null);
 
     // Store message with TTL — server stores encrypted content, never plaintext
     const expiresAt = new Date(Date.now() + MESSAGE_TTL_HOURS * 60 * 60 * 1000);
@@ -215,7 +208,7 @@ export async function registerRoutes(fastify: FastifyInstance) {
 
   // ── GET /api/messages/:id ───────────────────────────────────────────
   // Fetch a message by ID. One-time read — deleted from server immediately.
-  fastify.get('/api/messages/:id', async (request, reply) => {
+  fastify.get('/api/messages/:id', { preHandler: authMiddleware }, async (request, reply) => {
     const { id } = request.params as { id: string };
     const db = getPool();
 
