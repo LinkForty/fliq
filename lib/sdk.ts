@@ -54,6 +54,11 @@ export async function createShareLink(payload: MessagePayload): Promise<string> 
     });
     const encrypted = encrypt(plaintext, key);
 
+    // Build the interstitial fallback URL with encrypted params and key in fragment.
+    // When the link is clicked on a device without the app, the user lands on this
+    // page which offers app store downloads and an "open in app" button.
+    const fallback = `https://fliq.linkforty.com/s?e=${encodeURIComponent(encrypted.e)}&n=${encodeURIComponent(encrypted.n)}#${key}`;
+
     const result = await LinkFortySDK.createLink({
       deepLinkParameters: {
         e: encrypted.e,
@@ -61,6 +66,7 @@ export async function createShareLink(payload: MessagePayload): Promise<string> 
         v: String(encrypted.v),
       },
       title: `Secret from ${payload.senderName}`,
+      webFallbackUrl: fallback,
     });
 
     // Append decryption key as URL fragment — never sent to server
