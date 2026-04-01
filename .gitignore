@@ -13,12 +13,10 @@ dist/
 *.key
 *.mobileprovision
 
-# Firebase service account keys
+# Firebase service account keys (actual secrets — never commit)
 fliq-693c1-*.json
 linkforty-*.json
-google-services.json
 bis-annual-self-classification-report.csv
-eas.json
 STORE_LISTING.md
 *.orig.*
 web-build/
