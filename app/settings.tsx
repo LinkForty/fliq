@@ -41,6 +41,7 @@ export default function SettingsScreen() {
   const [saveRecentNumbers, setSaveRecentNumbers] = useState(true);
   const [phoneNumber, setPhoneNumber] = useState('');
   const [pushRegistered, setPushRegistered] = useState(false);
+  const [showAdvanced, setShowAdvanced] = useState(false);
 
   useEffect(() => {
     loadSettings();
@@ -312,124 +313,143 @@ export default function SettingsScreen() {
           </View>
         </View>
 
-        {/* LinkForty Integration */}
+        {/* Advanced Settings Toggle */}
         <View className="mt-10 pt-6" style={{ borderTopWidth: 1, borderTopColor: colors.sectionBorder }}>
-          <Text
-            className="text-xs font-bold uppercase tracking-widest mb-3"
-            style={{ color: colors.textSecondary }}
+          <Pressable
+            onPress={() => setShowAdvanced(!showAdvanced)}
+            className="flex-row items-center justify-between py-2"
           >
-            LinkForty SDK
-          </Text>
-
-          {/* Status */}
-          <View
-            className="flex-row items-center mb-4 p-4 rounded-xl"
-            style={{ ...colors.bgCard, borderWidth: 1, borderColor: colors.cardBorder }}
-          >
-            <View
-              className="w-3 h-3 rounded-full mr-3"
-              style={{
-                backgroundColor: connected
-                  ? colors.statusActive
-                  : colors.statusInactive,
-              }}
-            />
-            <View className="flex-1">
-              <Text className="font-semibold" style={{ color: colors.textPrimary }}>
-                {connected ? 'Connected' : 'Not connected'}
-              </Text>
-              <Text className="text-xs mt-0.5" style={{ color: colors.textTertiary }}>
-                {connected
-                  ? 'Links and events are being tracked in your LinkForty dashboard'
-                  : 'Running in standalone mode \u2014 no data is sent to LinkForty'}
-              </Text>
-            </View>
-          </View>
-
-          {/* API Key */}
-          <Text
-            className="text-xs font-bold uppercase tracking-widest mb-1.5"
-            style={{ color: colors.textSecondary }}
-          >
-            API Key
-          </Text>
-          <TextInput
-            value={apiKey}
-            onChangeText={setApiKey}
-            placeholder="dl_xxxxxxxxxxxxxxxx..."
-            placeholderTextColor={colors.inputPlaceholder}
-            autoCapitalize="none"
-            autoCorrect={false}
-            className="rounded-xl px-4 py-3 text-base mb-1 font-mono"
-            style={{
-              ...colors.bgInput,
-              borderWidth: 1,
-              borderColor: colors.inputBorder,
-              color: colors.textPrimary,
-            }}
-          />
-          <Text className="text-xs mb-5" style={{ color: colors.textTertiary }}>
-            Get your API key from the LinkForty dashboard under Settings &rarr; API Keys
-          </Text>
-
-          {/* Base URL */}
-          <Text
-            className="text-xs font-bold uppercase tracking-widest mb-1.5"
-            style={{ color: colors.textSecondary }}
-          >
-            Base URL
-          </Text>
-          <TextInput
-            value={baseUrl}
-            onChangeText={setBaseUrl}
-            placeholder="https://api.linkforty.com"
-            placeholderTextColor={colors.inputPlaceholder}
-            autoCapitalize="none"
-            autoCorrect={false}
-            keyboardType="url"
-            className="rounded-xl px-4 py-3 text-base mb-1"
-            style={{
-              ...colors.bgInput,
-              borderWidth: 1,
-              borderColor: colors.inputBorder,
-              color: colors.textPrimary,
-            }}
-          />
-          <Text className="text-xs mb-6" style={{ color: colors.textTertiary }}>
-            Use the default unless you're running a self-hosted LinkForty instance
-          </Text>
-
-          {/* Connect / Disconnect */}
-          {connected ? (
-            <Pressable
-              onPress={handleDisconnect}
-              className="rounded-xl py-4 items-center"
-              style={{ borderWidth: 2, borderColor: '#ef4444' }}
+            <Text
+              className="text-xs font-bold uppercase tracking-widest"
+              style={{ color: colors.textSecondary }}
             >
-              <Text className="font-semibold text-base" style={{ color: '#ef4444' }}>
-                Disconnect
-              </Text>
-            </Pressable>
-          ) : (
-            <Pressable
-              onPress={handleConnect}
-              disabled={loading}
-              className="rounded-xl py-4 items-center"
-              style={{
-                backgroundColor: loading
-                  ? (colors.bgCard as { backgroundColor: string }).backgroundColor
-                  : colors.accent,
-              }}
-            >
+              Advanced
+            </Text>
+            <Text style={{ color: colors.textTertiary, fontSize: 16 }}>
+              {showAdvanced ? '\u25B2' : '\u25BC'}
+            </Text>
+          </Pressable>
+
+          {showAdvanced && (
+            <View className="mt-3">
               <Text
-                className="font-bold text-base"
-                style={{
-                  color: loading ? colors.textTertiary : colors.accentText,
-                }}
+                className="text-xs font-bold uppercase tracking-widest mb-3"
+                style={{ color: colors.textSecondary }}
               >
-                {loading ? 'Connecting...' : 'Connect'}
+                LinkForty SDK
               </Text>
-            </Pressable>
+
+              {/* Status */}
+              <View
+                className="flex-row items-center mb-4 p-4 rounded-xl"
+                style={{ ...colors.bgCard, borderWidth: 1, borderColor: colors.cardBorder }}
+              >
+                <View
+                  className="w-3 h-3 rounded-full mr-3"
+                  style={{
+                    backgroundColor: connected
+                      ? colors.statusActive
+                      : colors.statusInactive,
+                  }}
+                />
+                <View className="flex-1">
+                  <Text className="font-semibold" style={{ color: colors.textPrimary }}>
+                    {connected ? 'Connected' : 'Not connected'}
+                  </Text>
+                  <Text className="text-xs mt-0.5" style={{ color: colors.textTertiary }}>
+                    {connected
+                      ? 'Links and events are being tracked in your LinkForty dashboard'
+                      : 'Running in standalone mode \u2014 no data is sent to LinkForty'}
+                  </Text>
+                </View>
+              </View>
+
+              {/* API Key */}
+              <Text
+                className="text-xs font-bold uppercase tracking-widest mb-1.5"
+                style={{ color: colors.textSecondary }}
+              >
+                API Key
+              </Text>
+              <TextInput
+                value={apiKey}
+                onChangeText={setApiKey}
+                placeholder="dl_xxxxxxxxxxxxxxxx..."
+                placeholderTextColor={colors.inputPlaceholder}
+                autoCapitalize="none"
+                autoCorrect={false}
+                className="rounded-xl px-4 py-3 text-base mb-1 font-mono"
+                style={{
+                  ...colors.bgInput,
+                  borderWidth: 1,
+                  borderColor: colors.inputBorder,
+                  color: colors.textPrimary,
+                }}
+              />
+              <Text className="text-xs mb-5" style={{ color: colors.textTertiary }}>
+                Get your API key from the LinkForty dashboard under Settings &rarr; API Keys
+              </Text>
+
+              {/* Base URL */}
+              <Text
+                className="text-xs font-bold uppercase tracking-widest mb-1.5"
+                style={{ color: colors.textSecondary }}
+              >
+                Base URL
+              </Text>
+              <TextInput
+                value={baseUrl}
+                onChangeText={setBaseUrl}
+                placeholder="https://api.linkforty.com"
+                placeholderTextColor={colors.inputPlaceholder}
+                autoCapitalize="none"
+                autoCorrect={false}
+                keyboardType="url"
+                className="rounded-xl px-4 py-3 text-base mb-1"
+                style={{
+                  ...colors.bgInput,
+                  borderWidth: 1,
+                  borderColor: colors.inputBorder,
+                  color: colors.textPrimary,
+                }}
+              />
+              <Text className="text-xs mb-6" style={{ color: colors.textTertiary }}>
+                Use the default unless you're running a self-hosted LinkForty instance
+              </Text>
+
+              {/* Connect / Disconnect */}
+              {connected ? (
+                <Pressable
+                  onPress={handleDisconnect}
+                  className="rounded-xl py-4 items-center"
+                  style={{ borderWidth: 2, borderColor: '#ef4444' }}
+                >
+                  <Text className="font-semibold text-base" style={{ color: '#ef4444' }}>
+                    Disconnect
+                  </Text>
+                </Pressable>
+              ) : (
+                <Pressable
+                  onPress={handleConnect}
+                  disabled={loading}
+                  className="rounded-xl py-4 items-center"
+                  style={{
+                    backgroundColor: loading
+                      ? (colors.bgCard as { backgroundColor: string }).backgroundColor
+                      : colors.accent,
+                  }}
+                >
+                  <Text
+                    className="font-bold text-base"
+                    style={{
+                      color: loading ? colors.textTertiary : colors.accentText,
+                    }}
+                  >
+                    {loading ? 'Connecting...' : 'Connect'}
+                  </Text>
+                </Pressable>
+              )}
+            </View>
           )}
         </View>
 
