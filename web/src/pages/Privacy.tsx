@@ -32,19 +32,34 @@ export function Privacy() {
             </section>
 
             <section>
+              <h2 className="text-xl font-bold text-white mb-3">Phone Verification</h2>
+              <p>
+                During onboarding, we verify your phone number via a one-time SMS code. This
+                verification is processed by <strong>Twilio</strong>, a third-party communications
+                provider. Twilio receives your phone number solely to deliver the verification code.
+                We do not share your phone number with any other third party.
+              </p>
+              <p className="mt-2">
+                Standard messaging rates from your carrier may apply when receiving the verification SMS.
+              </p>
+            </section>
+
+            <section>
               <h2 className="text-xl font-bold text-white mb-3">Device Registration</h2>
               <p>
                 When you enable push notifications, we store the following on our server:
               </p>
               <ul className="list-disc pl-6 mt-2 space-y-1">
                 <li>A unique device identifier</li>
-                <li>Your phone number</li>
+                <li>Your verified phone number</li>
                 <li>Your push notification token</li>
                 <li>Your device platform (iOS or Android)</li>
               </ul>
               <p className="mt-2">
-                This information is used solely to deliver push notifications to your device. We do
-                not share it with third parties.
+                This information is used solely to deliver push notifications to your device and
+                to allow other users to send you messages by phone number. We do not share it with
+                third parties. An authentication token is stored locally on your device to keep
+                you signed in.
               </p>
             </section>
 

@@ -29,6 +29,24 @@ export function Terms() {
             </section>
 
             <section>
+              <h2 className="text-xl font-bold text-white mb-3">Eligibility</h2>
+              <p>
+                You must be at least 13 years of age to use Fliq'd. By using the App, you represent
+                that you meet this requirement. If you are under 18, you must have permission from
+                a parent or legal guardian.
+              </p>
+            </section>
+
+            <section>
+              <h2 className="text-xl font-bold text-white mb-3">Account &amp; Phone Verification</h2>
+              <p>
+                Fliq'd requires a verified phone number to send and receive push messages. Verification
+                is performed via a one-time SMS code. You are responsible for maintaining the security
+                of your device and phone number. Standard messaging rates from your carrier may apply.
+              </p>
+            </section>
+
+            <section>
               <h2 className="text-xl font-bold text-white mb-3">Acceptable Use</h2>
               <p>You agree not to use Fliq'd to:</p>
               <ul className="list-disc pl-6 mt-2 space-y-1">
