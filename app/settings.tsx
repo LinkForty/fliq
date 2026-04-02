@@ -328,7 +328,7 @@ export default function SettingsScreen() {
               Advanced
             </Text>
             <Text style={{ color: colors.textTertiary, fontSize: 16 }}>
-              {showAdvanced ? '\u25B2' : '\u25BC'}
+              {showAdvanced ? '\u25BC' : '\u203A'}
             </Text>
           </Pressable>
 
@@ -468,7 +468,7 @@ export default function SettingsScreen() {
               Legal
             </Text>
             <Text style={{ color: colors.textTertiary, fontSize: 16 }}>
-              {showLegal ? '\u25B2' : '\u25BC'}
+              {showLegal ? '\u25BC' : '\u203A'}
             </Text>
           </Pressable>
 
@@ -507,7 +507,7 @@ export default function SettingsScreen() {
               Data
             </Text>
             <Text style={{ color: colors.textTertiary, fontSize: 16 }}>
-              {showData ? '\u25B2' : '\u25BC'}
+              {showData ? '\u25BC' : '\u203A'}
             </Text>
           </Pressable>
 
