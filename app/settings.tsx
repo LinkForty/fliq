@@ -327,8 +327,8 @@ export default function SettingsScreen() {
             >
               Advanced
             </Text>
-            <Text style={{ color: colors.textTertiary, fontSize: 16 }}>
-              {showAdvanced ? '\u25BC' : '\u203A'}
+            <Text style={{ color: colors.textTertiary, fontSize: 18, transform: [{ rotate: showAdvanced ? '90deg' : '0deg' }] }}>
+              {'\u203A'}
             </Text>
           </Pressable>
 
@@ -467,8 +467,8 @@ export default function SettingsScreen() {
             >
               Legal
             </Text>
-            <Text style={{ color: colors.textTertiary, fontSize: 16 }}>
-              {showLegal ? '\u25BC' : '\u203A'}
+            <Text style={{ color: colors.textTertiary, fontSize: 18, transform: [{ rotate: showLegal ? '90deg' : '0deg' }] }}>
+              {'\u203A'}
             </Text>
           </Pressable>
 
@@ -506,8 +506,8 @@ export default function SettingsScreen() {
             >
               Data
             </Text>
-            <Text style={{ color: colors.textTertiary, fontSize: 16 }}>
-              {showData ? '\u25BC' : '\u203A'}
+            <Text style={{ color: colors.textTertiary, fontSize: 18, transform: [{ rotate: showData ? '90deg' : '0deg' }] }}>
+              {'\u203A'}
             </Text>
           </Pressable>
 
