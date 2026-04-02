@@ -42,6 +42,8 @@ export default function SettingsScreen() {
   const [phoneNumber, setPhoneNumber] = useState('');
   const [pushRegistered, setPushRegistered] = useState(false);
   const [showAdvanced, setShowAdvanced] = useState(false);
+  const [showLegal, setShowLegal] = useState(false);
+  const [showData, setShowData] = useState(false);
 
   useEffect(() => {
     loadSettings();
@@ -455,123 +457,152 @@ export default function SettingsScreen() {
 
         {/* Legal */}
         <View className="mt-10 pt-6" style={{ borderTopWidth: 1, borderTopColor: colors.sectionBorder }}>
-          <Text
-            className="text-xs font-bold uppercase tracking-widest mb-3"
-            style={{ color: colors.textSecondary }}
-          >
-            Legal
-          </Text>
           <Pressable
-            onPress={() => WebBrowser.openBrowserAsync('https://fliq.linkforty.com/privacy')}
-            className="flex-row items-center justify-between p-4 rounded-xl"
-            style={{ ...colors.bgCard, borderWidth: 1, borderColor: colors.cardBorder }}
+            onPress={() => setShowLegal(!showLegal)}
+            className="flex-row items-center justify-between py-2"
           >
-            <Text className="font-semibold" style={{ color: colors.textPrimary }}>Privacy Policy</Text>
-            <Text className="text-lg" style={{ color: colors.textTertiary }}>&rsaquo;</Text>
+            <Text
+              className="text-xs font-bold uppercase tracking-widest"
+              style={{ color: colors.textSecondary }}
+            >
+              Legal
+            </Text>
+            <Text style={{ color: colors.textTertiary, fontSize: 16 }}>
+              {showLegal ? '\u25B2' : '\u25BC'}
+            </Text>
           </Pressable>
-          <Pressable
-            onPress={() => WebBrowser.openBrowserAsync('https://fliq.linkforty.com/terms')}
-            className="flex-row items-center justify-between p-4 rounded-xl mt-3"
-            style={{ ...colors.bgCard, borderWidth: 1, borderColor: colors.cardBorder }}
-          >
-            <Text className="font-semibold" style={{ color: colors.textPrimary }}>Terms of Service</Text>
-            <Text className="text-lg" style={{ color: colors.textTertiary }}>&rsaquo;</Text>
-          </Pressable>
+
+          {showLegal && (
+            <View className="mt-3">
+              <Pressable
+                onPress={() => WebBrowser.openBrowserAsync('https://fliq.linkforty.com/privacy')}
+                className="flex-row items-center justify-between p-4 rounded-xl"
+                style={{ ...colors.bgCard, borderWidth: 1, borderColor: colors.cardBorder }}
+              >
+                <Text className="font-semibold" style={{ color: colors.textPrimary }}>Privacy Policy</Text>
+                <Text className="text-lg" style={{ color: colors.textTertiary }}>&rsaquo;</Text>
+              </Pressable>
+              <Pressable
+                onPress={() => WebBrowser.openBrowserAsync('https://fliq.linkforty.com/terms')}
+                className="flex-row items-center justify-between p-4 rounded-xl mt-3"
+                style={{ ...colors.bgCard, borderWidth: 1, borderColor: colors.cardBorder }}
+              >
+                <Text className="font-semibold" style={{ color: colors.textPrimary }}>Terms of Service</Text>
+                <Text className="text-lg" style={{ color: colors.textTertiary }}>&rsaquo;</Text>
+              </Pressable>
+            </View>
+          )}
         </View>
 
         {/* Data */}
         <View className="mt-10 pt-6" style={{ borderTopWidth: 1, borderTopColor: colors.sectionBorder }}>
-          <Text className="text-xs font-bold uppercase tracking-widest mb-3" style={{ color: '#ef4444' }}>
-            Data
-          </Text>
           <Pressable
-            onPress={() =>
-              Alert.alert(
-                'Clear All Messages',
-                'This will permanently delete all sent and received messages from this device.',
-                [
-                  { text: 'Cancel', style: 'cancel' },
-                  {
-                    text: 'Clear All',
-                    style: 'destructive',
-                    onPress: async () => {
-                      await clearMessages();
-                      Alert.alert('Done', 'All messages have been cleared.');
-                    },
-                  },
-                ],
-              )
-            }
-            className="rounded-xl py-4 items-center"
-            style={{ borderWidth: 2, borderColor: '#ef4444' }}
+            onPress={() => setShowData(!showData)}
+            className="flex-row items-center justify-between py-2"
           >
-            <Text className="font-semibold text-base" style={{ color: '#ef4444' }}>
-              Clear All Messages
+            <Text
+              className="text-xs font-bold uppercase tracking-widest"
+              style={{ color: '#ef4444' }}
+            >
+              Data
+            </Text>
+            <Text style={{ color: colors.textTertiary, fontSize: 16 }}>
+              {showData ? '\u25B2' : '\u25BC'}
             </Text>
           </Pressable>
-          <Text className="text-xs mt-2 text-center" style={{ color: colors.textTertiary }}>
-            Permanently deletes all messages from this device
-          </Text>
 
-          <Pressable
-            onPress={() =>
-              Alert.alert(
-                'Clear Recent Recipients',
-                'This will remove all stored phone numbers from your recent recipients list.',
-                [
-                  { text: 'Cancel', style: 'cancel' },
-                  {
-                    text: 'Clear',
-                    style: 'destructive',
-                    onPress: async () => {
-                      await clearRecentRecipients();
-                      Alert.alert('Done', 'Recent recipients have been cleared.');
-                    },
-                  },
-                ],
-              )
-            }
-            className="mt-4 rounded-xl py-4 items-center"
-            style={{ borderWidth: 2, borderColor: '#ef4444' }}
-          >
-            <Text className="font-semibold text-base" style={{ color: '#ef4444' }}>
-              Clear Recent Recipients
-            </Text>
-          </Pressable>
-          <Text className="text-xs mt-2 text-center" style={{ color: colors.textTertiary }}>
-            Removes stored phone numbers from the recent list
-          </Text>
+          {showData && (
+            <View className="mt-3">
+              <Pressable
+                onPress={() =>
+                  Alert.alert(
+                    'Clear All Messages',
+                    'This will permanently delete all sent and received messages from this device.',
+                    [
+                      { text: 'Cancel', style: 'cancel' },
+                      {
+                        text: 'Clear All',
+                        style: 'destructive',
+                        onPress: async () => {
+                          await clearMessages();
+                          Alert.alert('Done', 'All messages have been cleared.');
+                        },
+                      },
+                    ],
+                  )
+                }
+                className="rounded-xl py-4 items-center"
+                style={{ borderWidth: 2, borderColor: '#ef4444' }}
+              >
+                <Text className="font-semibold text-base" style={{ color: '#ef4444' }}>
+                  Clear All Messages
+                </Text>
+              </Pressable>
+              <Text className="text-xs mt-2 text-center" style={{ color: colors.textTertiary }}>
+                Permanently deletes all messages from this device
+              </Text>
 
-          <Pressable
-            onPress={() =>
-              Alert.alert(
-                'Reset App Data',
-                'This will erase all messages, settings, and app data. You will need to go through onboarding again.',
-                [
-                  { text: 'Cancel', style: 'cancel' },
-                  {
-                    text: 'Reset Everything',
-                    style: 'destructive',
-                    onPress: async () => {
-                      resetSDK();
-                      await clearMessages();
-                      await clearRecentRecipients();
-                      await clearSettings();
-                      router.replace('/onboarding');
-                    },
-                  },
-                ],
-              )
-            }
-            className="mt-4 rounded-xl py-4 items-center bg-red-500 active:bg-red-600"
-          >
-            <Text className="text-white font-semibold text-base">
-              Reset App Data
-            </Text>
-          </Pressable>
-          <Text className="text-xs mt-2 text-center" style={{ color: colors.textTertiary }}>
-            Erases everything and returns to onboarding
-          </Text>
+              <Pressable
+                onPress={() =>
+                  Alert.alert(
+                    'Clear Recent Recipients',
+                    'This will remove all stored phone numbers from your recent recipients list.',
+                    [
+                      { text: 'Cancel', style: 'cancel' },
+                      {
+                        text: 'Clear',
+                        style: 'destructive',
+                        onPress: async () => {
+                          await clearRecentRecipients();
+                          Alert.alert('Done', 'Recent recipients have been cleared.');
+                        },
+                      },
+                    ],
+                  )
+                }
+                className="mt-4 rounded-xl py-4 items-center"
+                style={{ borderWidth: 2, borderColor: '#ef4444' }}
+              >
+                <Text className="font-semibold text-base" style={{ color: '#ef4444' }}>
+                  Clear Recent Recipients
+                </Text>
+              </Pressable>
+              <Text className="text-xs mt-2 text-center" style={{ color: colors.textTertiary }}>
+                Removes stored phone numbers from the recent list
+              </Text>
+
+              <Pressable
+                onPress={() =>
+                  Alert.alert(
+                    'Reset App Data',
+                    'This will erase all messages, settings, and app data. You will need to go through onboarding again.',
+                    [
+                      { text: 'Cancel', style: 'cancel' },
+                      {
+                        text: 'Reset Everything',
+                        style: 'destructive',
+                        onPress: async () => {
+                          resetSDK();
+                          await clearMessages();
+                          await clearRecentRecipients();
+                          await clearSettings();
+                          router.replace('/onboarding');
+                        },
+                      },
+                    ],
+                  )
+                }
+                className="mt-4 rounded-xl py-4 items-center bg-red-500 active:bg-red-600"
+              >
+                <Text className="text-white font-semibold text-base">
+                  Reset App Data
+                </Text>
+              </Pressable>
+              <Text className="text-xs mt-2 text-center" style={{ color: colors.textTertiary }}>
+                Erases everything and returns to onboarding
+              </Text>
+            </View>
+          )}
         </View>
       </ScrollView>
     </KeyboardAvoidingView>
