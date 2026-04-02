@@ -171,7 +171,7 @@ export async function handleSchemeDeepLink(url: string): Promise<void> {
  */
 export async function handleUniversalLinkDeepLink(url: string): Promise<void> {
   try {
-    const payload = parseDeepLink(url);
+    const payload = await parseDeepLink(url);
     if (!payload) return;
 
     const id = Date.now().toString(36) + Math.random().toString(36).slice(2, 8);

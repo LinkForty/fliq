@@ -206,6 +206,36 @@ export async function registerRoutes(fastify: FastifyInstance) {
     });
   });
 
+  // ── POST /api/messages/link ────────────────────────────────────────
+  // Store an encrypted message for link sharing (no push notification).
+  // Returns a message ID that can be embedded in the share URL.
+  // The message is fetched and deleted when the recipient opens the link.
+  fastify.post('/api/messages/link', { preHandler: authMiddleware }, async (request, reply) => {
+    const schema = z.object({
+      senderName: z.string().min(1).max(100),
+      encryptedContent: z.string().min(1).max(4000),
+      contentNonce: z.string().min(1).max(100),
+      revealStyle: z.enum(['flick', 'scratch', 'blur', 'typewriter', 'flip']).default('flick'),
+    });
+
+    const data = schema.parse(request.body);
+    const db = getPool();
+    const senderPhone = request.phone || null;
+    const expiresAt = new Date(Date.now() + MESSAGE_TTL_HOURS * 60 * 60 * 1000);
+
+    const result = await db.query(
+      `INSERT INTO messages (sender_device_id, sender_name, sender_phone, recipient_phone, content, content_nonce, reveal_style, expires_at)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+       RETURNING id`,
+      ['link', data.senderName, senderPhone, 'link', data.encryptedContent, data.contentNonce, data.revealStyle, expiresAt],
+    );
+
+    return reply.status(201).send({
+      messageId: result.rows[0].id,
+      expiresAt: expiresAt.toISOString(),
+    });
+  });
+
   // ── GET /api/messages/:id ───────────────────────────────────────────
   // Fetch a message by ID. One-time read — deleted from server immediately.
   fastify.get('/api/messages/:id', { preHandler: authMiddleware }, async (request, reply) => {

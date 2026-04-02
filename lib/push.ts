@@ -10,7 +10,7 @@ import { getAuthHeaders } from './auth';
 const DEVICE_ID_KEY = '@fliq/device_id';
 const PUSH_TOKEN_KEY = '@fliq/push_token';
 
-function getApiBase(): string {
+export function getApiBase(): string {
   if (__DEV__) {
     return Platform.OS === 'android' ? 'http://10.0.2.2:3100' : 'http://localhost:3100';
   }
