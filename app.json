@@ -49,6 +49,9 @@
     "android": {
       "package": "com.linkforty.fliq",
       "googleServicesFile": "./google-services.json",
+      "blockedPermissions": [
+        "android.permission.ACTIVITY_RECOGNITION"
+      ],
       "navigationBar": {
         "visible": "sticky-immersive"
       },
