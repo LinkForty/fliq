@@ -76,7 +76,7 @@ function AppNavigator() {
         <Stack.Screen
           name="(tabs)"
           options={{
-            title: "Fliq'd",
+            title: '',
             headerRight: () => (
               <Pressable onPress={() => router.push('/settings')} hitSlop={8}>
                 <Text style={{ fontSize: 22, color: colors.textSecondary }}>{'\u2699'}</Text>

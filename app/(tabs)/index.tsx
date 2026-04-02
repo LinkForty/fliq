@@ -40,7 +40,10 @@ export default function HomeScreen() {
   return (
     <View style={{ flex: 1, backgroundColor: colors.bg }}>
       {messages.length === 0 ? (
-        <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 32 }}>
+        <Pressable
+          onPress={() => router.push('/create')}
+          style={{ flex: 1, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 32 }}
+        >
           <View
             style={{
               width: 80,
@@ -66,9 +69,9 @@ export default function HomeScreen() {
             No secrets yet
           </Text>
           <Text style={{ marginTop: 8, color: colors.textSecondary, textAlign: 'center' }}>
-            Send your first secret message
+            Tap to send your first secret message
           </Text>
-        </View>
+        </Pressable>
       ) : (
         <FlatList
           data={messages}
