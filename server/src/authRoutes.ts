@@ -8,6 +8,14 @@ import { signToken } from './auth.js';
 const MAX_OTP_REQUESTS = 3;
 const OTP_WINDOW_HOURS = 24;
 
+// Demo account for App Store review — phone and code set via env vars
+const DEMO_PHONE = process.env.DEMO_PHONE || '';
+const DEMO_OTP_CODE = process.env.DEMO_OTP_CODE || '';
+
+function isDemoPhone(normalized: string): boolean {
+  return !!DEMO_PHONE && normalized === DEMO_PHONE;
+}
+
 const phoneSchema = z.object({
   phone: z.string().min(5).max(30),
 });
@@ -51,6 +59,11 @@ export async function registerAuthRoutes(fastify: FastifyInstance) {
       });
     }
 
+    // Demo account — skip Twilio, accept fixed code
+    if (isDemoPhone(normalized)) {
+      return reply.send({ sent: true });
+    }
+
     // Send OTP via Twilio
     try {
       await sendOtp(toE164(normalized));
@@ -77,16 +90,22 @@ export async function registerAuthRoutes(fastify: FastifyInstance) {
     const normalized = normalizePhone(phone);
     const db = getPool();
 
-    // Verify with Twilio
+    // Demo account — accept fixed code
     let approved: boolean;
-    try {
-      approved = await checkOtp(toE164(normalized), code);
-    } catch (err) {
-      fastify.log.error(err, 'OTP verification check failed');
-      return reply.status(500).send({
-        error: 'verification_failed',
-        message: 'Unable to verify code. Please try again.',
-      });
+    if (isDemoPhone(normalized) && DEMO_OTP_CODE && code === DEMO_OTP_CODE) {
+      approved = true;
+    } else if (isDemoPhone(normalized)) {
+      approved = false;
+    } else {
+      try {
+        approved = await checkOtp(toE164(normalized), code);
+      } catch (err) {
+        fastify.log.error(err, 'OTP verification check failed');
+        return reply.status(500).send({
+          error: 'verification_failed',
+          message: 'Unable to verify code. Please try again.',
+        });
+      }
     }
 
     if (!approved) {
