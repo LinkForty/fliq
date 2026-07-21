@@ -15,6 +15,7 @@ import { handleSDKDeepLink, handleSchemeDeepLink, handleUniversalLinkDeepLink } 
 import { isOnboardingComplete } from '@/lib/settings';
 import { fetchPushMessage } from '@/lib/push';
 import { saveMessage, hasMessageWithPushId, findMessageByPushId } from '@/lib/storage';
+import { isBlocked } from '@/lib/moderation';
 import { ThemeProvider, useTheme } from '@/lib/theme';
 import type { Message, RevealStyle } from '@/lib/types';
 
@@ -168,6 +169,11 @@ export default function RootLayout() {
 
     const id = Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
     const senderPhone = msg.senderPhone || (data.senderPhone as string | undefined);
+
+    // Drop messages from blocked senders (server also drops them; this covers
+    // messages already in flight when the block was created)
+    if (senderPhone && (await isBlocked(senderPhone))) return null;
+
     const message: Message = {
       id,
       pushMessageId,

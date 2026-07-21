@@ -3,6 +3,7 @@ import Fastify from 'fastify';
 import { initializeDatabase, cleanupMessages, cleanupOtpRequests } from './database.js';
 import { registerRoutes } from './routes.js';
 import { registerAuthRoutes } from './authRoutes.js';
+import { registerModerationRoutes } from './moderationRoutes.js';
 
 const start = async () => {
   const fastify = Fastify({ logger: true });
@@ -10,7 +11,7 @@ const start = async () => {
   // CORS — allow requests from anywhere (mobile app)
   fastify.addHook('onRequest', (_request, reply, done) => {
     reply.header('Access-Control-Allow-Origin', '*');
-    reply.header('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+    reply.header('Access-Control-Allow-Methods', 'GET, POST, DELETE, OPTIONS');
     reply.header('Access-Control-Allow-Headers', 'Content-Type, Authorization');
     done();
   });
@@ -29,6 +30,7 @@ const start = async () => {
   // Register routes
   await fastify.register(registerAuthRoutes);
   await fastify.register(registerRoutes);
+  await fastify.register(registerModerationRoutes);
 
   // Error handler
   fastify.setErrorHandler((error, _request, reply) => {

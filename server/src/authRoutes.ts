@@ -1,6 +1,6 @@
 import { FastifyInstance } from 'fastify';
 import { z } from 'zod';
-import { getPool } from './database.js';
+import { getPool, isBanned } from './database.js';
 import { normalizePhone, toE164 } from './utils.js';
 import { sendOtp, checkOtp } from './twilio.js';
 import { signToken } from './auth.js';
@@ -32,6 +32,13 @@ export async function registerAuthRoutes(fastify: FastifyInstance) {
     const { phone } = phoneSchema.parse(request.body);
     const normalized = normalizePhone(phone);
     const db = getPool();
+
+    if (await isBanned(normalized)) {
+      return reply.status(403).send({
+        error: 'account_banned',
+        message: 'This account has been suspended for violating our terms of service. Contact support@linkforty.com to appeal.',
+      });
+    }
 
     // Check if already verified — issue token immediately (zero cost)
     const cached = await db.query(
@@ -89,6 +96,13 @@ export async function registerAuthRoutes(fastify: FastifyInstance) {
     const { phone, code } = verifySchema.parse(request.body);
     const normalized = normalizePhone(phone);
     const db = getPool();
+
+    if (await isBanned(normalized)) {
+      return reply.status(403).send({
+        error: 'account_banned',
+        message: 'This account has been suspended for violating our terms of service. Contact support@linkforty.com to appeal.',
+      });
+    }
 
     // Demo account — accept fixed code
     let approved: boolean;

@@ -18,6 +18,7 @@ import { getSettings } from '@/lib/settings';
 import { isPayloadTooLarge } from '@/lib/deeplink';
 import { createShareLink, isConnected, trackEvent } from '@/lib/sdk';
 import { sendPushMessage } from '@/lib/push';
+import { containsObjectionableContent } from '@/lib/content-filter';
 import { REVEAL_STYLES } from '@/lib/reveal-styles';
 import { useTheme } from '@/lib/theme';
 import type { RevealStyle, Message } from '@/lib/types';
@@ -69,6 +70,16 @@ export default function CreateScreen() {
 
   async function handleShare() {
     if (!canShare || sharing) return;
+
+    // Content filter must run client-side: messages are encrypted end-to-end,
+    // so this is the only place objectionable content can be caught pre-send.
+    if (containsObjectionableContent(content) || containsObjectionableContent(senderName)) {
+      Alert.alert(
+        'Message Blocked',
+        "This message appears to contain offensive language, which isn't allowed on Fliq'd. Please edit it and try again.",
+      );
+      return;
+    }
 
     const payload = {
       content: content.trim(),

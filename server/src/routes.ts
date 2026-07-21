@@ -162,6 +162,21 @@ export async function registerRoutes(fastify: FastifyInstance) {
     // Use the authenticated phone as the authoritative sender
     const senderPhone = request.phone || (data.senderPhone ? normalizePhone(data.senderPhone) : null);
 
+    // If the recipient has blocked this sender, silently drop the message.
+    // The response mimics success so the sender can't detect they're blocked.
+    if (senderPhone) {
+      const blockResult = await db.query(
+        `SELECT 1 FROM blocks WHERE blocker_phone = $1 AND blocked_phone = $2`,
+        [normalizePhone(data.recipientPhone), senderPhone],
+      );
+      if (blockResult.rows.length > 0) {
+        return reply.status(201).send({
+          messageId: crypto.randomUUID(),
+          expiresAt: new Date(Date.now() + MESSAGE_TTL_HOURS * 60 * 60 * 1000).toISOString(),
+        });
+      }
+    }
+
     // Store message with TTL — server stores encrypted content, never plaintext
     const expiresAt = new Date(Date.now() + MESSAGE_TTL_HOURS * 60 * 60 * 1000);
     const storedContent = data.encryptedContent || data.content;

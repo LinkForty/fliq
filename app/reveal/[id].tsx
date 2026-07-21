@@ -1,5 +1,5 @@
 import { useEffect, useState, useCallback } from 'react';
-import { View, Text, Pressable } from 'react-native';
+import { View, Text, Pressable, Alert } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { getMessages, markAsRead, deleteMessage } from '@/lib/storage';
@@ -12,6 +12,8 @@ import { FlickReveal } from '@/components/FlickReveal';
 import { TypewriterReveal } from '@/components/TypewriterReveal';
 import { FlipReveal } from '@/components/FlipReveal';
 import { useTheme } from '@/lib/theme';
+import { reportMessage, blockSender, REPORT_REASONS } from '@/lib/moderation';
+import type { ReportReason } from '@/lib/moderation';
 import type { Message, RevealStyle } from '@/lib/types';
 
 export default function RevealScreen() {
@@ -38,6 +40,69 @@ export default function RevealScreen() {
     }
 
     setError('Message not found');
+  }
+
+  function handleReport() {
+    if (!message) return;
+
+    const submit = async (reason: ReportReason) => {
+      const result = await reportMessage({
+        senderPhone: message.senderPhone,
+        senderName: message.senderName,
+        messageId: message.pushMessageId,
+        content: message.content,
+        reason,
+      });
+      if ('error' in result) {
+        Alert.alert('Report Failed', result.error);
+        return;
+      }
+      if (message.senderPhone) {
+        Alert.alert(
+          'Report Submitted',
+          'Thank you. We review all reports within 24 hours and remove violators. Would you also like to block this sender?',
+          [
+            { text: 'Not Now', style: 'cancel' },
+            { text: 'Block Sender', style: 'destructive', onPress: handleBlock },
+          ],
+        );
+      } else {
+        Alert.alert('Report Submitted', 'Thank you. We review all reports within 24 hours and remove violators.');
+      }
+    };
+
+    Alert.alert('Report This Message', "What's wrong with it?", [
+      ...REPORT_REASONS.map(({ value, label }) => ({
+        text: label,
+        onPress: () => void submit(value),
+      })),
+      { text: 'Cancel', style: 'cancel' as const },
+    ]);
+  }
+
+  function handleBlock() {
+    if (!message?.senderPhone) return;
+    const phone = message.senderPhone;
+
+    Alert.alert(
+      `Block ${message.senderName}?`,
+      "They won't be able to send you secrets anymore. You can unblock them in Settings.",
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Block',
+          style: 'destructive',
+          onPress: async () => {
+            const result = await blockSender(phone);
+            if ('error' in result) {
+              Alert.alert('Block Failed', result.error);
+            } else {
+              Alert.alert('Blocked', 'This sender can no longer send you secrets.');
+            }
+          },
+        },
+      ],
+    );
   }
 
   const handleRevealed = useCallback(async () => {
@@ -189,6 +254,24 @@ export default function RevealScreen() {
               Go back
             </Text>
           </Pressable>
+
+          {/* Safety actions — required for received UGC */}
+          {message.direction === 'received' && (
+            <View className="flex-row justify-center mt-1">
+              <Pressable onPress={handleReport} className="py-2 px-3 active:opacity-70">
+                <Text className="text-xs" style={{ color: '#ef4444' }}>
+                  Report
+                </Text>
+              </Pressable>
+              {message.senderPhone ? (
+                <Pressable onPress={handleBlock} className="py-2 px-3 active:opacity-70">
+                  <Text className="text-xs" style={{ color: '#ef4444' }}>
+                    Block Sender
+                  </Text>
+                </Pressable>
+              ) : null}
+            </View>
+          )}
         </View>
       )}
     </View>

@@ -9,6 +9,7 @@ import {
   Alert,
   KeyboardAvoidingView,
   Platform,
+  Linking,
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -17,10 +18,12 @@ import { getSettings, saveSettings, clearSettings } from '@/lib/settings';
 import { initializeSDK, isConnected, resetSDK } from '@/lib/sdk';
 import { clearMessages, clearRecentRecipients } from '@/lib/storage';
 import { registerForPushNotifications, registerDevice } from '@/lib/push';
+import { syncBlocklist, unblockSender } from '@/lib/moderation';
 import { useTheme } from '@/lib/theme';
 import type { ThemePreference } from '@/lib/settings';
 
 const DEFAULT_BASE_URL = 'https://api.linkforty.com';
+const SUPPORT_EMAIL = 'support@linkforty.com';
 
 const THEME_OPTIONS: { value: ThemePreference; label: string }[] = [
   { value: 'dark', label: 'Dark' },
@@ -44,10 +47,29 @@ export default function SettingsScreen() {
   const [showAdvanced, setShowAdvanced] = useState(false);
   const [showLegal, setShowLegal] = useState(false);
   const [showData, setShowData] = useState(false);
+  const [blockedPhones, setBlockedPhones] = useState<string[]>([]);
 
   useEffect(() => {
     loadSettings();
+    syncBlocklist().then(setBlockedPhones);
   }, []);
+
+  function handleUnblock(phone: string) {
+    Alert.alert('Unblock this number?', `${phone} will be able to send you secrets again.`, [
+      { text: 'Cancel', style: 'cancel' },
+      {
+        text: 'Unblock',
+        onPress: async () => {
+          const result = await unblockSender(phone);
+          if ('error' in result) {
+            Alert.alert('Unblock Failed', result.error);
+          } else {
+            setBlockedPhones((phones) => phones.filter((p) => p !== phone));
+          }
+        },
+      },
+    ]);
+  }
 
   async function loadSettings() {
     const settings = await getSettings();
@@ -313,6 +335,72 @@ export default function SettingsScreen() {
               thumbColor={saveRecentNumbers ? colors.thumbOn : colors.thumbOff}
             />
           </View>
+        </View>
+
+        {/* Safety */}
+        <View className="pt-6 mt-6" style={{ borderTopWidth: 1, borderTopColor: colors.sectionBorder }}>
+          <Text
+            className="text-xs font-bold uppercase tracking-widest mb-3"
+            style={{ color: colors.textSecondary }}
+          >
+            Safety
+          </Text>
+
+          {/* Blocked numbers */}
+          <View
+            className="p-4 rounded-xl"
+            style={{ ...colors.bgCard, borderWidth: 1, borderColor: colors.cardBorder }}
+          >
+            <Text className="font-semibold mb-1" style={{ color: colors.textPrimary }}>
+              Blocked Numbers
+            </Text>
+            {blockedPhones.length === 0 ? (
+              <Text className="text-xs" style={{ color: colors.textTertiary }}>
+                No blocked numbers. You can block a sender after revealing their message.
+              </Text>
+            ) : (
+              blockedPhones.map((phone) => (
+                <View
+                  key={phone}
+                  className="flex-row items-center justify-between py-2.5"
+                  style={{ borderTopWidth: 1, borderTopColor: colors.cardBorder }}
+                >
+                  <Text className="text-base" style={{ color: colors.textPrimary }}>
+                    +{phone}
+                  </Text>
+                  <Pressable onPress={() => handleUnblock(phone)} className="py-1 px-2 active:opacity-70">
+                    <Text className="text-sm font-semibold" style={{ color: colors.accent }}>
+                      Unblock
+                    </Text>
+                  </Pressable>
+                </View>
+              ))
+            )}
+          </View>
+
+          {/* Report a problem */}
+          <Pressable
+            onPress={() =>
+              Linking.openURL(
+                `mailto:${SUPPORT_EMAIL}?subject=${encodeURIComponent("Fliq'd: Report inappropriate activity")}`,
+              )
+            }
+            className="flex-row items-center justify-between p-4 rounded-xl mt-3"
+            style={{ ...colors.bgCard, borderWidth: 1, borderColor: colors.cardBorder }}
+          >
+            <View className="flex-1 mr-4">
+              <Text className="font-semibold" style={{ color: colors.textPrimary }}>
+                Report a Problem
+              </Text>
+              <Text className="text-xs mt-0.5" style={{ color: colors.textTertiary }}>
+                Contact us about inappropriate activity: {SUPPORT_EMAIL}
+              </Text>
+            </View>
+            <Text className="text-lg" style={{ color: colors.textTertiary }}>&rsaquo;</Text>
+          </Pressable>
+          <Text className="text-xs mt-2 mb-0" style={{ color: colors.textTertiary }}>
+            Fliq'd has zero tolerance for objectionable content or abusive users. Reports are reviewed within 24 hours.
+          </Text>
         </View>
 
         {/* Advanced Settings Toggle */}

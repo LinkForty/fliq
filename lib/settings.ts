@@ -15,6 +15,8 @@ export type FliqSettings = {
   phoneNumber?: string;
   pushRegistered?: boolean;
   onboardingComplete?: boolean;
+  /** ISO timestamp of when the user accepted the Terms of Service (EULA) */
+  termsAcceptedAt?: string;
   theme?: ThemePreference;
   saveRecentNumbers: boolean;
 };

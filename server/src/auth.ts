@@ -1,5 +1,6 @@
 import jwt from 'jsonwebtoken';
 import { FastifyRequest, FastifyReply } from 'fastify';
+import { isBanned } from './database.js';
 
 function getSecret(): string {
   const secret = process.env.JWT_SECRET;
@@ -28,6 +29,14 @@ export async function authMiddleware(request: FastifyRequest, reply: FastifyRepl
     request.phone = payload.phone;
   } catch {
     return reply.status(401).send({ error: 'unauthorized', message: 'Invalid or expired token' });
+  }
+
+  // Ejected users lose all access — every authenticated endpoint rejects them
+  if (await isBanned(request.phone!)) {
+    return reply.status(403).send({
+      error: 'account_banned',
+      message: 'This account has been suspended for violating our terms of service. Contact support@linkforty.com to appeal.',
+    });
   }
 }
 
