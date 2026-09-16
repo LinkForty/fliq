@@ -8,6 +8,7 @@ import {
   Platform,
   ScrollView,
   Alert,
+  Linking,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
@@ -25,14 +26,18 @@ import { verifyOtp } from '@/lib/auth';
 import { useTheme } from '@/lib/theme';
 
 const PUSH_STEP = 2;
-const PROFILE_STEP = 4;
-const TOTAL_STEPS = 5;
+const TERMS_STEP = 4;
+const PROFILE_STEP = 5;
+const TOTAL_STEPS = 6;
+
+const TERMS_URL = 'https://fliq.linkforty.com/terms';
+const PRIVACY_URL = 'https://fliq.linkforty.com/privacy';
 
 const STEPS = [
   {
     emoji: '🤫',
     title: 'Your secrets. Delivered.',
-    body: 'Send secret messages that only the recipient can reveal. No accounts, no trace, pure privacy.',
+    body: 'Send secret messages that only the recipient can reveal. No feeds, no followers — just private messages between friends.',
   },
   {
     emoji: '🫰',
@@ -48,6 +53,11 @@ const STEPS = [
     emoji: '🔒',
     title: 'Ephemeral by design',
     body: "Messages vanish after reading. Your secrets are encrypted end-to-end — not even Fliq'd can read them. Delete messages anytime, or let the app auto-delete.",
+  },
+  {
+    emoji: '🤝',
+    title: 'Keep it kind',
+    body: "Fliq'd has zero tolerance for objectionable content or abusive behavior. You can report any message you receive and block any sender — reports are reviewed within 24 hours, and violators are removed.",
   },
   {
     emoji: '👋',
@@ -72,10 +82,12 @@ export default function OnboardingScreen() {
   const [otpCode, setOtpCode] = useState('');
   const [otpVerifying, setOtpVerifying] = useState(false);
   const [direction, setDirection] = useState<'forward' | 'back'>('forward');
+  const [termsAcceptedAt, setTermsAcceptedAt] = useState<string | null>(null);
   const nameInputRef = useRef<TextInput>(null);
 
   const isLastStep = step === PROFILE_STEP;
   const isPushStep = step === PUSH_STEP;
+  const isTermsStep = step === TERMS_STEP;
   const current = STEPS[step];
 
   async function handleEnablePush() {
@@ -162,6 +174,7 @@ export default function OnboardingScreen() {
         userName: name.trim(),
         phoneNumber: phone,
         onboardingComplete: true,
+        termsAcceptedAt: termsAcceptedAt || new Date().toISOString(),
       });
 
       if (pushToken) {
@@ -175,6 +188,9 @@ export default function OnboardingScreen() {
       trackEvent('onboarding_completed', { userName: name.trim(), hasPush: pushEnabled });
       router.replace('/');
     } else {
+      if (isTermsStep && !termsAcceptedAt) {
+        setTermsAcceptedAt(new Date().toISOString());
+      }
       setDirection('forward');
       setStep((s) => s + 1);
     }
@@ -264,6 +280,28 @@ export default function OnboardingScreen() {
                   </Text>
                 </Pressable>
               )}
+            </View>
+          )}
+
+          {/* Terms of Service links on the agreement step */}
+          {isTermsStep && (
+            <View className="w-full mt-8 items-center">
+              <View className="flex-row items-center">
+                <Pressable onPress={() => Linking.openURL(TERMS_URL)} className="active:opacity-70">
+                  <Text className="text-sm font-semibold underline" style={{ color: colors.accent }}>
+                    Terms of Service
+                  </Text>
+                </Pressable>
+                <Text className="text-sm mx-2" style={{ color: colors.textTertiary }}>·</Text>
+                <Pressable onPress={() => Linking.openURL(PRIVACY_URL)} className="active:opacity-70">
+                  <Text className="text-sm font-semibold underline" style={{ color: colors.accent }}>
+                    Privacy Policy
+                  </Text>
+                </Pressable>
+              </View>
+              <Text className="text-xs text-center mt-3 px-4" style={{ color: colors.textTertiary }}>
+                By tapping "I Agree" you accept the Terms of Service.
+              </Text>
             </View>
           )}
 
@@ -468,7 +506,7 @@ export default function OnboardingScreen() {
                   className="font-bold text-base"
                   style={{ color: colors.accentText }}
                 >
-                  {isLastStep ? 'Get Started' : 'Next'}
+                  {isLastStep ? 'Get Started' : isTermsStep ? 'I Agree' : 'Next'}
                 </Text>
               </Pressable>
             )}

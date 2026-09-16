@@ -8,7 +8,7 @@ export function Terms() {
       <main className="pt-24 pb-16 px-6">
         <article className="max-w-3xl mx-auto">
           <h1 className="text-3xl font-bold text-white mb-2">Terms of Service</h1>
-          <p className="text-slate-500 text-sm mb-10">Effective March 18, 2026</p>
+          <p className="text-slate-500 text-sm mb-10">Effective July 18, 2026</p>
 
           <div className="space-y-8 text-slate-300 leading-relaxed">
             <section>
@@ -31,9 +31,8 @@ export function Terms() {
             <section>
               <h2 className="text-xl font-bold text-white mb-3">Eligibility</h2>
               <p>
-                You must be at least 13 years of age to use Fliq'd. By using the App, you represent
-                that you meet this requirement. If you are under 18, you must have permission from
-                a parent or legal guardian.
+                You must be at least 18 years of age to use Fliq'd. By using the App, you represent
+                that you meet this requirement.
               </p>
             </section>
 
@@ -47,8 +46,16 @@ export function Terms() {
             </section>
 
             <section>
-              <h2 className="text-xl font-bold text-white mb-3">Acceptable Use</h2>
-              <p>You agree not to use Fliq'd to:</p>
+              <h2 className="text-xl font-bold text-white mb-3">Acceptable Use — Zero Tolerance</h2>
+              <p>
+                <strong className="text-white">
+                  Fliq'd has zero tolerance for objectionable content and abusive users.
+                </strong>{' '}
+                Sending content that is harassing, threatening, hateful, sexually exploitative, or
+                otherwise objectionable will result in removal of the content and permanent
+                termination of your access to the service.
+              </p>
+              <p className="mt-2">You agree not to use Fliq'd to:</p>
               <ul className="list-disc pl-6 mt-2 space-y-1">
                 <li>Send content that is illegal, threatening, harassing, or abusive</li>
                 <li>Distribute malware or harmful content</li>
@@ -56,8 +63,29 @@ export function Terms() {
                 <li>Spam or send unsolicited messages</li>
                 <li>Attempt to access another user's messages or data</li>
               </ul>
+            </section>
+
+            <section>
+              <h2 className="text-xl font-bold text-white mb-3">Reporting, Blocking, and Moderation</h2>
+              <p>Fliq'd provides in-app tools to keep you safe:</p>
+              <ul className="list-disc pl-6 mt-2 space-y-1">
+                <li>
+                  <strong className="text-white">Report:</strong> report any message you receive from
+                  the reveal screen, or contact us via Settings → Safety.
+                </li>
+                <li>
+                  <strong className="text-white">Block:</strong> block any sender so they can no
+                  longer deliver messages to you. Manage blocked numbers under Settings → Safety.
+                </li>
+                <li>
+                  <strong className="text-white">Delete:</strong> remove any message from your device
+                  at any time.
+                </li>
+              </ul>
               <p className="mt-2">
-                We reserve the right to terminate access for users who violate these terms.
+                We review all reports within 24 hours. When a report is substantiated, we remove the
+                offending content and eject the user who provided it by permanently banning their
+                verified phone number from the service.
               </p>
             </section>
 
